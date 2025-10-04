@@ -1,0 +1,10 @@
+pnpm-lock.yaml
+tsconfig.json
+node_modules
+**/.next/**
+**/_next/**
+**/dist/**
+**/__tmp__/**
+.github
+.git
+/public

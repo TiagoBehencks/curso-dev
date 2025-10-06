@@ -115,7 +115,7 @@ describe('GET /api/v1/user', () => {
       })
     })
 
-    test.only('with expired session', async () => {
+    test('with expired session', async () => {
       vitest.useFakeTimers({
         now: new Date(Date.now() - session.EXPIRATION_IN_MILLISECONDS),
       })

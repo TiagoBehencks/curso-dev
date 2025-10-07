@@ -7,6 +7,7 @@ export type User = {
   username: string
   email: string
   password: string
+  features: string[]
   created_at: Date
   updated_at: Date
 }

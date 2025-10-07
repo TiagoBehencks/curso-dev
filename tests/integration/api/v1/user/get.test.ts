@@ -20,6 +20,7 @@ describe('GET /api/v1/user', () => {
         id: userId,
         email,
         password,
+        features,
         created_at,
         updated_at,
       } = await createUser({
@@ -49,6 +50,7 @@ describe('GET /api/v1/user', () => {
         username: 'UserWithValidSession',
         email,
         password,
+        features,
         created_at: created_at.toISOString(),
         updated_at: updated_at.toISOString(),
       })
@@ -188,6 +190,7 @@ describe('GET /api/v1/user', () => {
         username: 'UserWith5MinutesLeftInSession',
         email: createdUser.email,
         password: createdUser.password,
+        features: createdUser.features,
         created_at: createdUser.created_at.toISOString(),
         updated_at: createdUser.updated_at.toISOString(),
       })

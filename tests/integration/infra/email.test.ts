@@ -1,14 +1,6 @@
-import { beforeAll, describe, expect, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { send } from 'infra/email'
-import {
-  deleteAllEmails,
-  getLastEmail,
-  waitForAllServices,
-} from 'tests/orchestrator'
-
-beforeAll(async () => {
-  await waitForAllServices()
-})
+import { deleteAllEmails, getLastEmail } from 'tests/orchestrator'
 
 describe('infra/email', () => {
   test('send', async () => {

@@ -58,6 +58,7 @@
     "@types/async-retry": "1.4.9",
     "@types/eslint__js": "8.42.3",
     "@types/node": "22.10.2",
+    "@types/nodemailer": "^7.0.2",
     "@types/pg": "8.11.10",
     "@types/react": "19.0.2",
     "@vitejs/plugin-react": "4.3.4",

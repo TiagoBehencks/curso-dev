@@ -88,6 +88,8 @@ export async function getLastEmail(): Promise<Mail | undefined> {
     const emails = (await response.json()) as Mail[]
     const lastEmail = emails.at(-1)
 
+    if (!lastEmail) return null
+
     const emailTextResponse = await fetch(
       `${emailHttpUrl}/messages/${lastEmail.id}.plain`
     )

@@ -14,15 +14,19 @@ export type User = {
 
 export type UserInputValues = Pick<User, 'username' | 'email' | 'password'>
 
+type UserToInsert = UserInputValues & Pick<User, 'features'>
+
 async function create({ username, email, password }: UserInputValues) {
   await validateUniqueUsername(username)
   await validateUniqueEmail(email)
+  const defaultFeatures = await getDefatultFeatures()
   const hashPassword = await hashPasswordInObject(password)
 
   const newUser = await runInsertQuery({
     username,
     email,
     password: hashPassword,
+    features: defaultFeatures,
   })
 
   return newUser
@@ -31,20 +35,25 @@ async function create({ username, email, password }: UserInputValues) {
     username,
     email,
     password,
-  }: UserInputValues) {
+    features,
+  }: UserToInsert) {
     const newUser = await query({
       text: `
         INSERT INTO 
-          users (username, email, password)
+          users (username, email, password, features)
         VALUES 
-          ($1, $2, $3)
+          ($1, $2, $3, $4)
         RETURNING
           *
         ;`,
-      values: [`${username}`, `${email}`, `${password}`],
+      values: [username, email, password, features],
     })
 
     return newUser.rows[0] as User
+  }
+
+  async function getDefatultFeatures() {
+    return ['read:activation_token']
   }
 }
 

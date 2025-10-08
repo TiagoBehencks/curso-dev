@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server'
 import { UserInputValues, user } from 'models/user'
 import { ValidationError } from 'infra/errors'
+import { activation } from 'models/activation'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const userInputValues = body as UserInputValues
     const newUser = await user.create(userInputValues)
+
+    await activation.sendEmailToUser({
+      email: newUser.email,
+      username: newUser.username,
+    })
 
     return NextResponse.json(newUser, {
       status: 201,

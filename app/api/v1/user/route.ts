@@ -1,14 +1,13 @@
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
 
 import { UnauthorizedError } from 'infra/errors'
 import { session } from 'models/session'
 import { user } from 'models/user'
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sessionToken = (await cookies()).get('session_id').value
+    const sessionToken = request.cookies.get('session_id').value
 
     const sessionObject = await session.findOneValidByToken({
       token: sessionToken,

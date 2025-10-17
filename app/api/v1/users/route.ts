@@ -9,9 +9,11 @@ export async function POST(request: Request) {
     const userInputValues = body as UserInputValues
     const newUser = await user.create(userInputValues)
 
+    const { id } = await activation.create({ id: newUser.id })
     await activation.sendEmailToUser({
       email: newUser.email,
       username: newUser.username,
+      activationToken: id,
     })
 
     return NextResponse.json(newUser, {

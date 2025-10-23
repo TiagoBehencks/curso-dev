@@ -2,6 +2,7 @@ import { send } from 'infra/email'
 import { query } from 'infra/database'
 import { webserver } from 'infra/webserver'
 import { User } from './user'
+import { NotFoundError } from 'infra/errors'
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000 // 15 minutes
 
@@ -94,8 +95,44 @@ async function findOneByUserId({ id }: Pick<User, 'id'>): Promise<Activation> {
   }
 }
 
+async function findOneValidById({ id }: Pick<Activation, 'id'>) {
+  const token = await runSelectQuery({ id })
+
+  return token
+
+  async function runSelectQuery({ id }: Pick<User, 'id'>) {
+    const result = await query({
+      text: ` 
+        SELECT
+          *
+        FROM
+          user_activation_tokens
+        WHERE
+          id = $1
+          AND expires_at > NOW()
+          AND used_at IS NULL
+        LIMIT
+          1
+        ;`,
+      values: [id],
+    })
+
+    if (result.rowCount === 0) {
+      throw new NotFoundError({
+        cause: 'TOKEN_NOT_FOUND',
+        message:
+          'The activation token was not found in the system or has expired',
+        action: 'Make a new registration',
+      })
+    }
+
+    return result.rows[0] as Activation
+  }
+}
+
 export const activation = {
   create,
   sendEmailToUser,
   findOneByUserId,
+  findOneValidById,
 }

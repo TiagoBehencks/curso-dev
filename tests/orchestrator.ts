@@ -103,3 +103,10 @@ export async function getLastEmail(): Promise<Mail | undefined> {
     throw new Error(`Erro em getLastEmail: ${(error as Error).message}`)
   }
 }
+
+export function extractUUIDFromText(text: string): string | null {
+  const uuidV4Regex =
+    /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
+  const match = text.match(uuidV4Regex)
+  return match ? match[0] : null
+}

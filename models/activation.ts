@@ -102,7 +102,7 @@ async function findOneValidById({
 
   return activation
 
-  async function runSelectQuery({ id }: Pick<User, 'id'>) {
+  async function runSelectQuery({ id }: Pick<Activation, 'id'>) {
     const result = await query({
       text: ` 
         SELECT

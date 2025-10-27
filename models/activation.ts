@@ -1,7 +1,7 @@
 import { send } from 'infra/email'
 import { query } from 'infra/database'
 import { webserver } from 'infra/webserver'
-import { User } from './user'
+import { Feature, user, User } from './user'
 import { NotFoundError } from 'infra/errors'
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000 // 15 minutes
@@ -95,10 +95,12 @@ async function findOneByUserId({ id }: Pick<User, 'id'>): Promise<Activation> {
   }
 }
 
-async function findOneValidById({ id }: Pick<Activation, 'id'>) {
-  const token = await runSelectQuery({ id })
+async function findOneValidById({
+  id,
+}: Pick<Activation, 'id'>): Promise<Activation> {
+  const activation = await runSelectQuery({ id })
 
-  return token
+  return activation
 
   async function runSelectQuery({ id }: Pick<User, 'id'>) {
     const result = await query({
@@ -130,9 +132,49 @@ async function findOneValidById({ id }: Pick<Activation, 'id'>) {
   }
 }
 
+async function markTokenAsUsed({
+  id,
+}: Pick<Activation, 'id'>): Promise<Activation> {
+  const activation = await runInsertQuery({
+    id,
+  })
+
+  return activation
+
+  async function runInsertQuery({ id }: Pick<Activation, 'id'>) {
+    const result = await query({
+      text: `
+        UPDATE
+          user_activation_tokens
+        SET
+          used_at = timezone('utc', now()),
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          *
+      ;`,
+      values: [id],
+    })
+
+    return result.rows[0] as Activation
+  }
+}
+
+async function activeUserByUserId({ id }: Pick<User, 'id'>) {
+  const activatedUser = await user.setFeatures({
+    id,
+    features: [Feature.CREATE_SESSION],
+  })
+
+  return activatedUser
+}
+
 export const activation = {
   create,
   sendEmailToUser,
   findOneByUserId,
   findOneValidById,
+  markTokenAsUsed,
+  activeUserByUserId,
 }

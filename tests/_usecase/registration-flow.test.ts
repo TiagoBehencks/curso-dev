@@ -7,7 +7,7 @@ import {
   runPendingMigrations,
 } from 'tests/orchestrator'
 import { activation } from 'models/activation'
-import { User } from 'models/user'
+import { user, User } from 'models/user'
 import { webserver } from 'infra/webserver'
 
 beforeAll(async () => {
@@ -16,6 +16,8 @@ beforeAll(async () => {
 
 describe('Use case: Registration Flow (all successful)', () => {
   let createUserResponseBody: User
+  let activationTokenId: string
+
   test('Create user account', async () => {
     const createUserResponse = await fetch(
       'http://localhost:3000/api/v1/users',
@@ -55,8 +57,8 @@ describe('Use case: Registration Flow (all successful)', () => {
     expect(lastEmail.subject).toBe('Activate your registration')
     expect(lastEmail.text).toContain('RegistrationFlow')
 
-    const activationTokenId = extractUUIDFromText(lastEmail.text)
-    const user = await activation.findOneValidById({
+    activationTokenId = extractUUIDFromText(lastEmail.text)
+    const activationObject = await activation.findOneValidById({
       id: activationTokenId,
     })
 
@@ -64,8 +66,23 @@ describe('Use case: Registration Flow (all successful)', () => {
       `${webserver.origin}/register/activate/${activationTokenId}`
     )
     expect(uuidVersion(createUserResponseBody.id)).toBe(4)
-    expect(uuidVersion(user.user_id)).toBe(4)
-    expect(createUserResponseBody.id).toBe(user.user_id)
-    expect(user.used_at).toBe(null)
+    expect(uuidVersion(activationObject.user_id)).toBe(4)
+    expect(createUserResponseBody.id).toBe(activationObject.user_id)
+    expect(activationObject.used_at).toBe(null)
+  })
+
+  test('Activate account', async () => {
+    const activationResponse = await fetch(
+      `http://localhost:3000/api/v1/activations/${activationTokenId}`,
+      {
+        method: 'PATCH',
+      }
+    )
+
+    const activationResponseBody = await activationResponse.json()
+    expect(Date.parse(activationResponseBody.used_at)).not.toBeNaN()
+
+    const activatedUser = await user.findOneByUsername('RegistrationFlow')
+    expect(activatedUser.features).toEqual(['create:session'])
   })
 })

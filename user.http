@@ -17,9 +17,12 @@ content-type: application/json
 }
 
 ###
-
 GET http://localhost:3000/api/v1/user
+
 
 
 ###
 DELETE  http://localhost:3000/api/v1/sessions 
+
+###
+PATCH  http://localhost:3000/api/v1/activations/3fcfc2fd-bdc3-405a-a163-3d11a541593c

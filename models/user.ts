@@ -2,12 +2,17 @@ import { query } from 'infra/database'
 import { password as modelPassword } from 'models/password'
 import { NotFoundError, ValidationError } from 'infra/errors'
 
+export enum Feature {
+  CREATE_SESSION = 'create:session',
+  READ_ACTIVATION_TOKEN = 'read:activation_token',
+}
+
 export type User = {
   id: string
   username: string
   email: string
   password: string
-  features: string[]
+  features: Feature[]
   created_at: Date
   updated_at: Date
 }
@@ -53,7 +58,7 @@ async function create({ username, email, password }: UserInputValues) {
   }
 
   async function getDefatultFeatures() {
-    return ['read:activation_token']
+    return [Feature.READ_ACTIVATION_TOKEN]
   }
 }
 
@@ -243,10 +248,45 @@ async function findOneById(id: string) {
   return user.rows[0] as User
 }
 
+async function setFeatures({
+  id,
+  features,
+}: Pick<User, 'id' | 'features'>): Promise<User> {
+  const updatedUser = await runInserQuery({
+    id,
+    features,
+  })
+
+  return updatedUser
+
+  async function runInserQuery({
+    id,
+    features,
+  }: Pick<User, 'id' | 'features'>) {
+    const results = await query({
+      text: `
+        UPDATE
+          users
+        SET
+          features = $2,
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          1
+      ;`,
+      values: [id, features],
+    })
+
+    return results.rows[0] as User
+  }
+}
+
 export const user = {
   create,
   update,
   findOneByUsername,
   findOneByEmail,
   findOneById,
+  setFeatures,
 }

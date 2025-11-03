@@ -1,13 +1,23 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-import { UnauthorizedError, ValidationError } from 'infra/errors'
+import {
+  ForbiddenError,
+  UnauthorizedError,
+  ValidationError,
+} from 'infra/errors'
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 import { authentication, AuthenticationUserData } from 'models/authentication'
 import { session } from 'models/session'
+import { canRequest } from 'infra/middleware'
+import { Feature } from 'models/user'
 
 export async function POST(request: Request) {
   try {
+    await canRequest({
+      feature: Feature.CREATE_SESSION,
+      request,
+    })
     const body = await request.json()
     const userInputValues = body as AuthenticationUserData
 
@@ -35,6 +45,12 @@ export async function POST(request: Request) {
 
     return responseWithCookies
   } catch (error) {
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json(error, {
+        status: error.statusCode,
+      })
+    }
+
     if (error instanceof ValidationError) {
       return NextResponse.json(error, {
         status: error.statusCode,

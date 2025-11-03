@@ -118,7 +118,7 @@ describe('GET /api/v1/user', () => {
       })
     })
 
-    test.only('with expired session', async () => {
+    test('with expired session', async () => {
       vitest.useFakeTimers({
         now: new Date(Date.now() - session.EXPIRATION_IN_MILLISECONDS),
       })
@@ -132,20 +132,11 @@ describe('GET /api/v1/user', () => {
 
       vitest.useRealTimers()
 
-      const teste = new NextRequest('http://localhost:3000/api/v1/user')
-      teste.headers.set('Cookie', `session_id=${sessionObject.token}`)
-
-      const x = await middleware(teste)
-
-      console.log('Middleware response:', x)
-
       const response = await fetch('http://localhost:3000/api/v1/user', {
         headers: {
           Cookie: `session_id=${sessionObject.token}`,
         },
       })
-
-      console.log('Response Status:', response) // Debugging line
 
       expect(response.status).toBe(401)
 

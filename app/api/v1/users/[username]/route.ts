@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 
+import { NotFoundError } from 'infra/errors'
+import { AppError } from 'infra/errors'
+
 import { user, UserInputValues } from 'models/user'
-import { NotFoundError, ValidationError } from 'infra/errors'
 
 export async function GET(
   request: Request,
@@ -49,7 +51,7 @@ export async function PATCH(
         { status: 400 }
       )
     }
-    if (error instanceof NotFoundError || error instanceof ValidationError) {
+    if (error instanceof AppError) {
       return NextResponse.json(error, {
         status: error.statusCode,
       })

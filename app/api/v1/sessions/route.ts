@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-import {
-  ForbiddenError,
-  UnauthorizedError,
-  ValidationError,
-} from 'infra/errors'
+import { AppError, ValidationError } from 'infra/errors'
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 import { authentication, AuthenticationUserData } from 'models/authentication'
 import { session } from 'models/session'
@@ -45,19 +41,7 @@ export async function POST(request: Request) {
 
     return responseWithCookies
   } catch (error) {
-    if (error instanceof ForbiddenError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
-    }
-
-    if (error instanceof ValidationError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
-    }
-
-    if (error instanceof UnauthorizedError) {
+    if (error instanceof AppError) {
       return NextResponse.json(error, {
         status: error.statusCode,
       })
@@ -90,13 +74,7 @@ export async function DELETE() {
 
     return responseWithExpieredCookie
   } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
-    }
-
-    if (error instanceof UnauthorizedError) {
+    if (error instanceof AppError) {
       return NextResponse.json(error, {
         status: error.statusCode,
       })

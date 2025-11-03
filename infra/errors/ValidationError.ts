@@ -13,7 +13,7 @@ export class ValidationError extends AppError {
     super({
       message: message || 'Validation Error',
       action: action || 'Invalid data provided',
-      statusCode: 422,
+      statusCode: 400,
       cause,
     })
   }

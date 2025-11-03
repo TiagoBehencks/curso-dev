@@ -1,8 +1,10 @@
 import { send } from 'infra/email'
 import { query } from 'infra/database'
 import { webserver } from 'infra/webserver'
-import { Feature, user, User } from './user'
 import { NotFoundError } from 'infra/errors'
+
+import { user, User } from './user'
+import { Feature } from './features'
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000 // 15 minutes
 

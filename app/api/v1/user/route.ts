@@ -7,7 +7,7 @@ import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionToken = request.cookies.get('session_id')?.value
+    const sessionToken = request.cookies.get('session_id')?.value || ''
 
     const sessionObject = await session.findOneValidByToken({
       token: sessionToken,
@@ -31,14 +31,24 @@ export async function GET(request: NextRequest) {
 
     return responseWithCookies
   } catch (error) {
+    console.log('meu erro', error)
     if (error instanceof UnauthorizedError) {
-      const response = NextResponse.json(error, {
-        status: error.statusCode,
-      })
+      const response = NextResponse.json(
+        {
+          message: error.message,
+          action: error.action,
+          name: error.name,
+          status_code: error.statusCode,
+        },
+        {
+          status: error.statusCode,
+        }
+      )
       clearSessionCookie({ response })
       return response
     }
 
+    console.error('Unexpected error in GET /api/v1/sessions:', error)
     return NextResponse.json(error, {
       status: 500,
     })

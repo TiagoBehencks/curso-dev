@@ -8,6 +8,7 @@ import {
   createSession,
 } from 'tests/orchestrator'
 import { session } from 'models/session'
+import { Feature } from 'models/features'
 
 beforeAll(async () => {
   await runPendingMigrations()
@@ -117,24 +118,34 @@ describe('GET /api/v1/user', () => {
       })
     })
 
-    test('with expired session', async () => {
+    test.only('with expired session', async () => {
       vitest.useFakeTimers({
         now: new Date(Date.now() - session.EXPIRATION_IN_MILLISECONDS),
       })
 
       const { id: userId } = await createUser({
         username: 'UserWithExpiredSession',
+        features: [Feature.CREATE_SESSION],
       })
 
       const sessionObject = await createSession({ id: userId })
 
       vitest.useRealTimers()
 
+      const teste = new NextRequest('http://localhost:3000/api/v1/user')
+      teste.headers.set('Cookie', `session_id=${sessionObject.token}`)
+
+      const x = await middleware(teste)
+
+      console.log('Middleware response:', x)
+
       const response = await fetch('http://localhost:3000/api/v1/user', {
         headers: {
           Cookie: `session_id=${sessionObject.token}`,
         },
       })
+
+      console.log('Response Status:', response) // Debugging line
 
       expect(response.status).toBe(401)
 

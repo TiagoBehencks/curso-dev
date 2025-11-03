@@ -21,9 +21,17 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     if (error instanceof ValidationError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
+      return NextResponse.json(
+        {
+          message: error.message,
+          action: error.action,
+          name: error.name,
+          status_code: error.statusCode,
+        },
+        {
+          status: error.statusCode,
+        }
+      )
     }
 
     return NextResponse.json(error, {

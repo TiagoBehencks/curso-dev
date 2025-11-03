@@ -4,6 +4,7 @@ import { version as uuidVersion } from 'uuid'
 
 import { createUser, runPendingMigrations } from 'tests/orchestrator'
 import { session } from 'models/session'
+import { Feature } from 'models/features'
 
 beforeAll(async () => {
   await runPendingMigrations()
@@ -15,6 +16,7 @@ describe('POST /api/v1/sessions', () => {
       const correctPassword = 'correct-password'
       await createUser({
         password: correctPassword,
+        features: [Feature.CREATE_SESSION],
       })
 
       const response = await fetch('http://localhost:3000/api/v1/sessions', {
@@ -102,6 +104,7 @@ describe('POST /api/v1/sessions', () => {
       const createdUser = await createUser({
         email: 'correct@email.com',
         password: 'password',
+        features: [Feature.CREATE_SESSION],
       })
 
       const response = await fetch('http://localhost:3000/api/v1/sessions', {

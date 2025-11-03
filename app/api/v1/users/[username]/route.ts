@@ -19,9 +19,17 @@ export async function GET(
     })
   } catch (error) {
     if (error instanceof NotFoundError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
+      return NextResponse.json(
+        {
+          message: error.message,
+          action: error.action,
+          name: error.name,
+          status_code: error.statusCode,
+        },
+        {
+          status: error.statusCode,
+        }
+      )
     }
 
     return NextResponse.json(error, {
@@ -52,9 +60,17 @@ export async function PATCH(
       )
     }
     if (error instanceof AppError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
+      return NextResponse.json(
+        {
+          message: error.message,
+          action: error.action,
+          name: error.name,
+          status_code: error.statusCode,
+        },
+        {
+          status: error.statusCode,
+        }
+      )
     }
 
     return NextResponse.json(error, {

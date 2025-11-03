@@ -5,8 +5,8 @@ import { AppError, ForbiddenError, ValidationError } from 'infra/errors'
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 import { authentication, AuthenticationUserData } from 'models/authentication'
 import { session } from 'models/session'
-import { Feature } from 'models/user'
 import { authorization } from 'models/authorization'
+import { Feature } from 'models/features'
 
 export async function POST(request: Request) {
   try {
@@ -83,9 +83,17 @@ export async function DELETE() {
     return responseWithExpieredCookie
   } catch (error) {
     if (error instanceof AppError) {
-      return NextResponse.json(error, {
-        status: error.statusCode,
-      })
+      return NextResponse.json(
+        {
+          message: error.message,
+          action: error.action,
+          name: error.name,
+          status_code: error.statusCode,
+        },
+        {
+          status: error.statusCode,
+        }
+      )
     }
 
     return NextResponse.json(error, {

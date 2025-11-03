@@ -6,6 +6,7 @@ import { query } from 'infra/database'
 import { runPendingMigrations as modelRunPendingMigrations } from 'models/migrator'
 import { User, user, UserInputValues } from 'models/user'
 import { session } from 'models/session'
+import { Feature } from 'models/features'
 
 const emailHttpUrl = `http://${env.EMAIL_HTTP_HOST}:${env.EMAIL_HTTP_PORT}`
 
@@ -50,16 +51,27 @@ export async function runPendingMigrations() {
   await modelRunPendingMigrations()
 }
 
+type CreateUserParams = Partial<UserInputValues> & {
+  features?: Feature[]
+}
+
 export async function createUser({
   username,
   email,
   password,
-}: Partial<UserInputValues>): Promise<User> {
-  return await user.create({
+  features,
+}: CreateUserParams): Promise<User> {
+  const createdUser = await user.create({
     username: username || faker.internet.username().replace(/[_.-]/g, ''),
     email: email || faker.internet.email(),
     password: password || faker.internet.password(),
   })
+
+  if (features && features.length > 0) {
+    await user.setFeatures({ id: createdUser.id, features })
+  }
+
+  return createdUser
 }
 
 export async function createSession({ id }: Pick<User, 'id'>) {

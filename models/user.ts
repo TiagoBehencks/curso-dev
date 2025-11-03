@@ -1,12 +1,7 @@
 import { query } from 'infra/database'
 import { password as modelPassword } from 'models/password'
 import { NotFoundError, ValidationError } from 'infra/errors'
-
-export enum Feature {
-  CREATE_SESSION = 'create:session',
-  READ_ACTIVATION_TOKEN = 'read:activation_token',
-  CREATE_USER = 'create:user',
-}
+import { Feature } from './features'
 
 export type User = {
   id: string

@@ -1,7 +1,11 @@
-import { ForbiddenError } from 'infra/errors'
-import { session } from 'models/session'
-import { Feature, User, user } from 'models/user'
 import { NextRequest, NextResponse } from 'next/server'
+
+import { authorization } from 'models/authorization'
+import { session } from 'models/session'
+import { User, user } from 'models/user'
+import { Feature } from 'models/features'
+
+import { ForbiddenError } from 'infra/errors'
 
 async function injectAuthenticatedUser(request: NextRequest) {
   const sessionToken = request.cookies.get('session_id')?.value
@@ -40,12 +44,6 @@ export function injectAnonymousOrUser(request: NextRequest) {
   return injectAnonymousUser(request)
 }
 
-const VALID_FEATURES = new Set<string>(Object.values(Feature))
-
-function isFeatureString(s: string): s is Feature {
-  return VALID_FEATURES.has(s)
-}
-
 type CanRequestParams = {
   feature: Feature
   request: Request | NextRequest
@@ -53,13 +51,12 @@ type CanRequestParams = {
 
 export async function canRequest({ feature, request }: CanRequestParams) {
   const raw = request.headers.get('x-user-features') || ''
-
-  const userFeatures = raw
+  const features = raw
     .split(',')
-    .map((s) => s.trim())
-    .filter(isFeatureString)
+    .map((f) => f.trim())
+    .filter((f): f is Feature => Object.values(Feature).includes(f as Feature))
 
-  if (userFeatures.includes(feature)) {
+  if (authorization.can({ featuresUserHas: features, feature })) {
     return NextResponse.next()
   }
 

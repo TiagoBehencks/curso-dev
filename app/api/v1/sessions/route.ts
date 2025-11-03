@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
-import { AppError, ValidationError } from 'infra/errors'
+import { AppError, ForbiddenError, ValidationError } from 'infra/errors'
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 import { authentication, AuthenticationUserData } from 'models/authentication'
 import { session } from 'models/session'
-import { canRequest } from 'infra/middleware'
 import { Feature } from 'models/user'
+import { authorization } from 'models/authorization'
 
 export async function POST(request: Request) {
   try {
-    await canRequest({
-      feature: Feature.CREATE_SESSION,
-      request,
-    })
     const body = await request.json()
     const userInputValues = body as AuthenticationUserData
 
@@ -25,12 +21,24 @@ export async function POST(request: Request) {
       })
     }
 
-    const autehnticatedUser = await authentication.getAuthenticatedUser({
+    const authenticatedUser = await authentication.getAuthenticatedUser({
       email: userInputValues.email,
       password: userInputValues.password,
     })
 
-    const newSession = await session.create(autehnticatedUser.id)
+    const canCreateSession = await authorization.can({
+      featuresUserHas: authenticatedUser.features,
+      feature: Feature.CREATE_SESSION,
+    })
+
+    if (!canCreateSession) {
+      throw new ForbiddenError({
+        message: 'You do not have permission to perform this action',
+        action: 'Check if your user has the feature',
+      })
+    }
+
+    const newSession = await session.create(authenticatedUser.id)
 
     const response = NextResponse.json(newSession, { status: 201 })
 

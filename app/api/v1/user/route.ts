@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
 
     return responseWithCookies
   } catch (error) {
-    console.log('meu erro', error)
     if (error instanceof UnauthorizedError) {
       const response = NextResponse.json(
         {

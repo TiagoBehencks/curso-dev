@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class InternalServerError extends Error {
   action: string
   statusCode: number
@@ -7,7 +6,7 @@ export class InternalServerError extends Error {
     cause,
     statusCode,
   }: {
-    cause: Error | undefined | any
+    cause: Error | undefined | unknown
     statusCode?: number
   }) {
     super('Internal Server Error', { cause })
@@ -82,7 +81,7 @@ export class ValidationError extends Error {
     action,
     message,
   }: {
-    cause: Error | undefined | any
+    cause: Error | undefined | unknown
     action: string
     message: string
   }) {
@@ -114,7 +113,7 @@ export class NotFoundError extends Error {
     action,
     message,
   }: {
-    cause: Error | undefined | any
+    cause: Error | undefined | unknown
     action: string
     message: string
   }) {
@@ -147,6 +146,28 @@ export class UnauthorizedError extends Error {
     this.name = 'UnauthorizedError'
     this.action = action || 'Resource not found'
     this.statusCode = 401
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.statusCode,
+    }
+  }
+}
+
+export class ForbiddenError extends Error {
+  action: string
+  statusCode: number
+
+  constructor({ action, message }: { action: string; message: string }) {
+    super(message || 'ForbiddenError')
+
+    this.name = 'ForbiddenError'
+    this.action = action || 'You do not have permission to access this resource'
+    this.statusCode = 403
   }
 
   toJSON() {

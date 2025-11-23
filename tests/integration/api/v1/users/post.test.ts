@@ -3,7 +3,13 @@ import { version as uuidVersion } from 'uuid'
 
 import { user } from 'models/user'
 import { password } from 'models/password'
-import { runPendingMigrations } from 'tests/orchestrator'
+
+import {
+  runPendingMigrations,
+  createUser,
+  createSession,
+} from 'tests/orchestrator'
+import { Feature } from 'models/features'
 
 beforeAll(async () => {
   await runPendingMigrations()
@@ -134,6 +140,38 @@ describe('POST /api/v1/users', () => {
         message: 'The username has been taken.',
         action: 'Try another username',
         statusCode: 400,
+      })
+    })
+  })
+
+  describe('Default user', () => {
+    test('With unique and valid data', async () => {
+      const createdUser = await createUser({
+        features: [Feature.CREATE_SESSION],
+      })
+      const sessionObject = await createSession({ id: createdUser.id })
+
+      const response = await fetch('http://localhost:3000/api/v1/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `session_id=${sessionObject.token}`,
+        },
+        body: JSON.stringify({
+          username: 'anotheruser',
+          email: 'user@suser.com',
+        }),
+      })
+
+      expect(response.status).toBe(403)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        name: 'ForbiddenError',
+        message: 'You do not have permission to perform this action',
+        action: 'Check if your user has the feature create:user',
+        statusCode: 403,
       })
     })
   })

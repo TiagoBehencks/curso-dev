@@ -2,8 +2,8 @@ POST http://localhost:3000/api/v1/users
 content-type: application/json
 
 {
-    "username": "Test User",
-    "email": "testuser@teste.com",
+    "username": "agora vai",
+    "email": "agpravai@teste.com",
     "password": "password123"
 }
 
@@ -25,4 +25,4 @@ GET http://localhost:3000/api/v1/user
 DELETE  http://localhost:3000/api/v1/sessions 
 
 ###
-PATCH  http://localhost:3000/api/v1/activations/0226ba78-9afb-4ff5-b0b2-db7e3a5d3cb8
+PATCH  http://localhost:3000/api/v1/activations/209d673d-2746-4ef8-a3a5-efe08eb9fccd

@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
+
+import { AppError } from 'infra/errors'
+import { canRequest } from 'infra/middleware'
+
 import { UserInputValues, user } from 'models/user'
-import { ValidationError } from 'infra/errors'
 import { activation } from 'models/activation'
+import { Feature } from 'models/features'
 
 export async function POST(request: Request) {
   try {
+    await canRequest({ request, feature: Feature.CREATE_USER })
     const body = await request.json()
     const userInputValues = body as UserInputValues
     const newUser = await user.create(userInputValues)
@@ -20,7 +25,7 @@ export async function POST(request: Request) {
       status: 201,
     })
   } catch (error) {
-    if (error instanceof ValidationError) {
+    if (error instanceof AppError) {
       return NextResponse.json(
         {
           message: error.message,

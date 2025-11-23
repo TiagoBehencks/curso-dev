@@ -56,12 +56,16 @@ export async function canRequest({ feature, request }: CanRequestParams) {
     .map((f) => f.trim())
     .filter((f): f is Feature => Object.values(Feature).includes(f as Feature))
 
-  if (authorization.can({ featuresUserHas: features, feature })) {
+  const user = {
+    features,
+  } as User
+
+  if (authorization.can({ user, feature })) {
     return NextResponse.next()
   }
 
   throw new ForbiddenError({
-    message: 'you do not have permission to perform this action',
-    action: `check if your user has the feature ${feature}`,
+    message: 'You do not have permission to perform this action',
+    action: `Check if your user has the feature ${feature}`,
   })
 }

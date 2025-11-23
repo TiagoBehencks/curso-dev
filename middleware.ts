@@ -40,7 +40,7 @@ function jsonErrorResponse(error: AppError | UnauthorizedError): NextResponse {
       name: error.name,
       message: error.message,
       action: error.action ?? null,
-      status_code: error.statusCode ?? 500,
+      statusCode: error.statusCode ?? 500,
     },
     { status: error.statusCode ?? 500 }
   )

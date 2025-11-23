@@ -1,11 +1,13 @@
+import { User } from './user'
 import { Feature, features } from './features'
 
 type CanParams = {
-  featuresUserHas: Feature[]
+  user: User
   feature: Feature
 }
 
-async function can({ featuresUserHas, feature }: CanParams): Promise<boolean> {
+function can({ user, feature }: CanParams): boolean {
+  const featuresUserHas = user.features || []
   const userFeatures = featuresUserHas
     .map((s) => s.trim())
     .filter(features.isFeatureString)

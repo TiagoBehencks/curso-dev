@@ -15,17 +15,31 @@ beforeAll(async () => {
 })
 
 describe('GET /api/v1/user', () => {
+  describe('Anonymous user', () => {
+    test('Retrieving the endpoint', async () => {
+      const response = await fetch('http://localhost:3000/api/v1/user')
+
+      expect(response.status).toBe(403)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        message: 'You do not have permission to perform this action',
+        action: `Check if your user has the feature read:session`,
+        name: 'ForbiddenError',
+        statusCode: 403,
+      })
+    })
+  })
   describe('Default user', () => {
     test('with valid session', async () => {
       const {
         id: userId,
         email,
         password,
-        features,
-        created_at,
-        updated_at,
       } = await createUser({
         username: 'UserWithValidSession',
+        features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
       })
 
       const sessionObject = await createSession({ id: userId })
@@ -51,9 +65,9 @@ describe('GET /api/v1/user', () => {
         username: 'UserWithValidSession',
         email,
         password,
-        features,
-        created_at: created_at.toISOString(),
-        updated_at: updated_at.toISOString(),
+        features: responseBody.features,
+        created_at: responseBody.created_at,
+        updated_at: responseBody.updated_at,
       })
 
       expect(uuidVersion(responseBody.id)).toBe(4)
@@ -101,7 +115,7 @@ describe('GET /api/v1/user', () => {
         name: 'UnauthorizedError',
         message: "User doesn't have an active session",
         action: 'Check if the user is logged in and try again.',
-        status_code: 401,
+        statusCode: 401,
       })
 
       // Set-Cookie assertions
@@ -146,7 +160,7 @@ describe('GET /api/v1/user', () => {
         name: 'UnauthorizedError',
         message: "User doesn't have an active session",
         action: 'Check if the user is logged in and try again.',
-        status_code: 401,
+        statusCode: 401,
       })
 
       // Set-Cookie assertions
@@ -172,6 +186,7 @@ describe('GET /api/v1/user', () => {
 
       const createdUser = await createUser({
         username: 'UserWith5MinutesLeftInSession',
+        features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
       })
 
       const sessionObject = await createSession({ id: createdUser.id })
@@ -192,9 +207,9 @@ describe('GET /api/v1/user', () => {
         username: 'UserWith5MinutesLeftInSession',
         email: createdUser.email,
         password: createdUser.password,
-        features: createdUser.features,
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        features: responseBody.features,
+        created_at: responseBody.created_at,
+        updated_at: responseBody.updated_at,
       })
       expect(uuidVersion(responseBody.id)).toBe(4)
       expect(Date.parse(responseBody.created_at)).not.toBeNaN()

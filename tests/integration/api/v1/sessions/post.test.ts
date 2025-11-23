@@ -38,7 +38,7 @@ describe('POST /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: 'Wrong values',
         action: 'Try again',
-        status_code: 401,
+        statusCode: 401,
       })
     })
 
@@ -67,7 +67,7 @@ describe('POST /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: 'Wrong password',
         action: 'Try again',
-        status_code: 401,
+        statusCode: 401,
       })
     })
 
@@ -96,7 +96,7 @@ describe('POST /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: 'Wrong values',
         action: 'Try again',
-        status_code: 401,
+        statusCode: 401,
       })
     })
 

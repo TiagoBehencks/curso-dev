@@ -26,7 +26,7 @@ export async function POST(request: Request) {
           message: error.message,
           action: error.action,
           name: error.name,
-          status_code: error.statusCode,
+          statusCode: error.statusCode,
         },
         {
           status: error.statusCode,

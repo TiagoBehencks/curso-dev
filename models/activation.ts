@@ -1,10 +1,11 @@
 import { send } from 'infra/email'
 import { query } from 'infra/database'
 import { webserver } from 'infra/webserver'
-import { NotFoundError } from 'infra/errors'
+import { ForbiddenError, NotFoundError } from 'infra/errors'
 
 import { user, User } from './user'
 import { Feature } from './features'
+import { authorization } from './authorization'
 
 const EXPIRATION_IN_MILLISECONDS = 60 * 15 * 1000 // 15 minutes
 
@@ -164,9 +165,23 @@ async function markTokenAsUsed({
 }
 
 async function activeUserByUserId({ id }: Pick<User, 'id'>) {
+  const userToActivate = await user.findOneById(id)
+
+  if (
+    !authorization.can({
+      user: userToActivate,
+      feature: Feature.READ_ACTIVATION_TOKEN,
+    })
+  ) {
+    throw new ForbiddenError({
+      message: 'User is already activated',
+      action: 'Contact support if you think this is a mistake',
+    })
+  }
+
   const activatedUser = await user.setFeatures({
     id,
-    features: [Feature.CREATE_SESSION],
+    features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
   })
 
   return activatedUser
@@ -179,4 +194,5 @@ export const activation = {
   findOneValidById,
   markTokenAsUsed,
   activeUserByUserId,
+  EXPIRATION_IN_MILLISECONDS,
 }

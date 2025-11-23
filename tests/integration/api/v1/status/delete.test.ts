@@ -15,7 +15,7 @@ describe('DELETE /api/v1/status', () => {
       expect(responseBody.name).toBe('MethodNotAllowedError')
       expect(responseBody.message).toBe('Method Not Allowed')
       expect(responseBody.action).toBe('Try again later')
-      expect(responseBody.status_code).toBe(405)
+      expect(responseBody.statusCode).toBe(405)
     })
   })
 })

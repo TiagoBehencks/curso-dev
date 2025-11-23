@@ -26,8 +26,8 @@ export async function POST(request: Request) {
       password: userInputValues.password,
     })
 
-    const canCreateSession = await authorization.can({
-      featuresUserHas: authenticatedUser.features,
+    const canCreateSession = authorization.can({
+      user: authenticatedUser,
       feature: Feature.CREATE_SESSION,
     })
 
@@ -88,7 +88,7 @@ export async function DELETE() {
           message: error.message,
           action: error.action,
           name: error.name,
-          status_code: error.statusCode,
+          statusCode: error.statusCode,
         },
         {
           status: error.statusCode,

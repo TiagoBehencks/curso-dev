@@ -2,8 +2,8 @@ POST http://localhost:3000/api/v1/users
 content-type: application/json
 
 {
-    "username": "oi oi ",
-    "email": "teste@teste.com",
+    "username": "Test User",
+    "email": "testuser@teste.com",
     "password": "password123"
 }
 
@@ -12,7 +12,7 @@ POST http://localhost:3000/api/v1/sessions
 content-type: application/json
 
 {
-    "email": "teste@teste.com",
+    "email": "testuser@teste.com",
     "password": "password123"
 }
 
@@ -25,4 +25,4 @@ GET http://localhost:3000/api/v1/user
 DELETE  http://localhost:3000/api/v1/sessions 
 
 ###
-PATCH  http://localhost:3000/api/v1/activations/3fcfc2fd-bdc3-405a-a163-3d11a541593c
+PATCH  http://localhost:3000/api/v1/activations/0226ba78-9afb-4ff5-b0b2-db7e3a5d3cb8

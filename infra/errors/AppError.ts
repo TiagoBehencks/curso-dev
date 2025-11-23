@@ -26,7 +26,7 @@ export class AppError extends Error {
       name: this.name,
       message: this.message,
       ...(this.action && { action: this.action }),
-      status_code: this.statusCode,
+      statusCode: this.statusCode,
       ...(this.cause && { cause: this.serializeCause(this.cause) }),
     }
   }

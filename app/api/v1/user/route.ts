@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { UnauthorizedError } from 'infra/errors'
+import { AppError, UnauthorizedError } from 'infra/errors'
 import { session } from 'models/session'
 import { user } from 'models/user'
+import { Feature } from 'models/features'
+
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
+import { canRequest } from 'infra/middleware'
 
 export async function GET(request: NextRequest) {
   try {
+    await canRequest({
+      request,
+      feature: Feature.READ_SESSION,
+    })
     const sessionToken = request.cookies.get('session_id')?.value || ''
 
     const sessionObject = await session.findOneValidByToken({
       token: sessionToken,
     })
+
     const userFound = await user.findOneById(sessionObject.user_id)
+
     const renewedSessionObject = await session.renewed({
       id: sessionObject.id,
     })
@@ -37,7 +46,7 @@ export async function GET(request: NextRequest) {
           message: error.message,
           action: error.action,
           name: error.name,
-          status_code: error.statusCode,
+          statusCode: error.statusCode,
         },
         {
           status: error.statusCode,
@@ -47,7 +56,12 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    console.error('Unexpected error in GET /api/v1/sessions:', error)
+    if (error instanceof AppError) {
+      return NextResponse.json(error, {
+        status: error.statusCode,
+      })
+    }
+
     return NextResponse.json(error, {
       status: 500,
     })

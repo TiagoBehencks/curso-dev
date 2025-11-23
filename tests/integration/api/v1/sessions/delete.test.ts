@@ -34,7 +34,7 @@ describe('DELETE /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: "User doesn't have an active session",
         action: 'Check if the user is logged in and try again.',
-        status_code: 401,
+        statusCode: 401,
       })
     })
 
@@ -64,7 +64,7 @@ describe('DELETE /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: "User doesn't have an active session",
         action: 'Check if the user is logged in and try again.',
-        status_code: 401,
+        statusCode: 401,
       })
     })
 
@@ -136,7 +136,7 @@ describe('DELETE /api/v1/sessions', () => {
         name: 'UnauthorizedError',
         message: "User doesn't have an active session",
         action: 'Check if the user is logged in and try again.',
-        status_code: 401,
+        statusCode: 401,
       })
     })
   })

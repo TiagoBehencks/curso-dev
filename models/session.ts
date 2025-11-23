@@ -9,7 +9,7 @@ type QueryValues = {
   expiresAt: Date
 }
 
-type Session = {
+export type Session = {
   id: string
   token: string
   user_id: string

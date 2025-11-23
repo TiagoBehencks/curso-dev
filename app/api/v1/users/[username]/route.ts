@@ -24,7 +24,7 @@ export async function GET(
           message: error.message,
           action: error.action,
           name: error.name,
-          status_code: error.statusCode,
+          statusCode: error.statusCode,
         },
         {
           status: error.statusCode,
@@ -65,7 +65,7 @@ export async function PATCH(
           message: error.message,
           action: error.action,
           name: error.name,
-          status_code: error.statusCode,
+          statusCode: error.statusCode,
         },
         {
           status: error.statusCode,

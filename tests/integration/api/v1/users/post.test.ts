@@ -94,7 +94,7 @@ describe('POST /api/v1/users', () => {
         name: 'ValidationError',
         message: 'The email has been taken.',
         action: 'Try another email',
-        status_code: 400,
+        statusCode: 400,
       })
     })
 
@@ -133,7 +133,7 @@ describe('POST /api/v1/users', () => {
         name: 'ValidationError',
         message: 'The username has been taken.',
         action: 'Try another username',
-        status_code: 400,
+        statusCode: 400,
       })
     })
   })

@@ -15,7 +15,7 @@ async function injectAuthenticatedUser(request: NextRequest) {
   const userObject = await user.findOneById(found.user_id)
 
   const headers = new Headers(request.headers)
-  headers.set('x-user-features', userObject.features.join(','))
+  headers.set('x-user', JSON.stringify(userObject))
 
   return NextResponse.next({ request: { headers } })
 }
@@ -29,7 +29,7 @@ function injectAnonymousUser(request: NextRequest) {
     ],
   }
   const headers = new Headers(request.headers)
-  headers.set('x-user-features', anonymousUser.features!.join(','))
+  headers.set('x-user', JSON.stringify(anonymousUser))
 
   return NextResponse.next({ request: { headers } })
 }
@@ -50,11 +50,9 @@ type CanRequestParams = {
 }
 
 export async function canRequest({ feature, request }: CanRequestParams) {
-  const raw = request.headers.get('x-user-features') || ''
-  const features = raw
-    .split(',')
-    .map((f) => f.trim())
-    .filter((f): f is Feature => Object.values(Feature).includes(f as Feature))
+  const raw = request.headers.get('x-user')
+  const userObject = raw ? JSON.parse(raw) : {}
+  const features = (userObject.features || []) as Feature[]
 
   const user = {
     features,

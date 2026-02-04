@@ -181,7 +181,11 @@ async function activeUserByUserId({ id }: Pick<User, 'id'>) {
 
   const activatedUser = await user.setFeatures({
     id,
-    features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
+    features: [
+      Feature.CREATE_SESSION,
+      Feature.READ_SESSION,
+      Feature.UPDATE_USER,
+    ],
   })
 
   return activatedUser

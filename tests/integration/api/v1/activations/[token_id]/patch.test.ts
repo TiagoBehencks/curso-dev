@@ -160,6 +160,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       expect(activatedUser.features).toEqual([
         Feature.CREATE_SESSION,
         Feature.READ_SESSION,
+        Feature.UPDATE_USER,
       ])
     })
 

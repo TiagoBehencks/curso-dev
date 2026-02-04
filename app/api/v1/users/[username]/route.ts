@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 
-import { NotFoundError } from 'infra/errors'
-import { AppError } from 'infra/errors'
+import { AppError, ForbiddenError, NotFoundError } from 'infra/errors'
+import { canRequest } from 'infra/middleware'
 
-import { user, UserInputValues } from 'models/user'
+import { authorization } from 'models/authorization'
+import { Feature } from 'models/features'
+import { User, user, UserInputValues } from 'models/user'
 
 export async function GET(
   request: Request,
@@ -43,9 +45,32 @@ export async function PATCH(
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
+    await canRequest({
+      request,
+      feature: Feature.UPDATE_USER,
+    })
+
     const { username } = await params
     const body = await request.json()
     const userInputValues = body as UserInputValues
+
+    const userTryingToBeUpdated = JSON.parse(
+      request.headers.get('x-user') || '{}'
+    ) as User
+    const targetUser = await user.findOneByUsername(username)
+
+    if (
+      !authorization.can({
+        user: userTryingToBeUpdated,
+        feature: Feature.UPDATE_USER,
+        resource: targetUser,
+      })
+    ) {
+      throw new ForbiddenError({
+        message: 'You do not have permission to perform this action',
+        action: 'Check if your user has the feature update:user',
+      })
+    }
 
     const updatedUser = await user.update(username, userInputValues)
 

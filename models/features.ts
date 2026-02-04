@@ -3,6 +3,7 @@ export enum Feature {
   READ_ACTIVATION_TOKEN = 'read:activation_token',
   CREATE_USER = 'create:user',
   READ_SESSION = 'read:session',
+  UPDATE_USER = 'update:user',
 }
 
 const VALID_FEATURES = new Set<string>(Object.values(Feature))

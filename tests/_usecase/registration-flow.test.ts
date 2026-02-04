@@ -1,16 +1,17 @@
-import { beforeAll, describe, expect, test } from 'vitest'
-import { version as uuidVersion } from 'uuid'
+import { activation } from 'models/activation'
+import { Session } from 'models/session'
 import {
   deleteAllEmails,
   extractUUIDFromText,
   getLastEmail,
   runPendingMigrations,
 } from 'tests/orchestrator'
-import { activation } from 'models/activation'
-import { Session } from 'models/session'
+import { version as uuidVersion } from 'uuid'
+import { beforeAll, describe, expect, test } from 'vitest'
 
-import { user, User } from 'models/user'
 import { webserver } from 'infra/webserver'
+import { Feature } from 'models/features'
+import { user, User } from 'models/user'
 
 beforeAll(async () => {
   await Promise.all([runPendingMigrations(), deleteAllEmails()])
@@ -86,7 +87,11 @@ describe('Use case: Registration Flow (all successful)', () => {
     expect(Date.parse(activationResponseBody.used_at)).not.toBeNaN()
 
     const activatedUser = await user.findOneByUsername('RegistrationFlow')
-    expect(activatedUser.features).toEqual(['create:session', 'read:session'])
+    expect(activatedUser.features).toEqual([
+      Feature.CREATE_SESSION,
+      Feature.READ_SESSION,
+      Feature.UPDATE_USER,
+    ])
   })
 
   test('Login', async () => {

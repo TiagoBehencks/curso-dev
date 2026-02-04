@@ -1,9 +1,15 @@
-import { beforeAll, describe, expect, test } from 'vitest'
 import { version as uuidVersion } from 'uuid'
+import { beforeAll, describe, expect, test } from 'vitest'
 
-import { user } from 'models/user'
+import { Feature } from 'models/features'
 import { password } from 'models/password'
-import { createUser, runPendingMigrations } from 'tests/orchestrator'
+import { user } from 'models/user'
+import {
+  activateUser,
+  createSession,
+  createUser,
+  runPendingMigrations,
+} from 'tests/orchestrator'
 
 beforeAll(async () => {
   await runPendingMigrations()
@@ -11,15 +17,43 @@ beforeAll(async () => {
 
 describe('PATCH /api/v1/users/[username]', () => {
   describe('Anonymous user', () => {
+    test('With unique "username"', async () => {
+      const response = await fetch(
+        'http://localhost:3000/api/v1/users/uniqueUser1',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            username: 'uniqueUser2',
+          }),
+        }
+      )
+      expect(response.status).toBe(403)
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        action: 'Check if your user has the feature update:user',
+        message: 'You do not have permission to perform this action',
+        name: 'ForbiddenError',
+        statusCode: 403,
+      })
+    })
+  })
+
+  describe('Default user', () => {
     test('With nonexistent "username"', async () => {
+      const createdUser = await createUser({})
+      const activatedUser = await activateUser({ id: createdUser.id })
+      const sessionObject = await createSession({ id: activatedUser.id })
+
       const response = await fetch(
         'http://localhost:3000/api/v1/users/nonexistent',
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject.token}`,
+          },
           body: JSON.stringify({
-            username: 'tiago',
-            email: 'tiago@tiago.com',
-            password: 'password123',
+            username: 'newUsername',
           }),
         }
       )
@@ -37,10 +71,17 @@ describe('PATCH /api/v1/users/[username]', () => {
     })
 
     test('Without data at request body', async () => {
+      const createdUser = await createUser({})
+      const activatedUser = await activateUser({ id: createdUser.id })
+      const sessionObject = await createSession({ id: activatedUser.id })
+
       const response = await fetch(
         'http://localhost:3000/api/v1/users/nonexistent',
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject.token}`,
+          },
         }
       )
 
@@ -53,36 +94,92 @@ describe('PATCH /api/v1/users/[username]', () => {
       })
     })
 
-    test('With duplicate "username"', async () => {
+    test('With duplicated "username"', async () => {
       await createUser({
         username: 'user1',
       })
 
-      await createUser({
+      const createdUser2 = await createUser({
         username: 'user2',
       })
+      const activatedUser2 = await activateUser({ id: createdUser2.id })
+      const sessionObject2 = await createSession({ id: activatedUser2.id })
 
       const response = await fetch('http://localhost:3000/api/v1/users/user2', {
         method: 'PATCH',
+        headers: {
+          Cookie: `session_id=${sessionObject2.token}`,
+        },
         body: JSON.stringify({
           username: 'user1',
         }),
       })
+
       expect(response.status).toBe(400)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        name: 'ValidationError',
+        message: 'The username has been taken.',
+        action: 'Try another username',
+        statusCode: 400,
+      })
     })
 
-    test('With duplicate "email"', async () => {
+    test('With `userTwo` targeting `userOne`', async () => {
+      await createUser({
+        username: 'userOne',
+      })
+
+      const createdUser2 = await createUser({
+        username: 'userTwo',
+      })
+      const activatedUser2 = await activateUser({ id: createdUser2.id })
+      const sessionObject2 = await createSession({ id: activatedUser2.id })
+
+      const response = await fetch(
+        'http://localhost:3000/api/v1/users/userOne',
+        {
+          method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject2.token}`,
+          },
+          body: JSON.stringify({
+            username: 'user3',
+          }),
+        }
+      )
+
+      expect(response.status).toBe(403)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        action: 'Check if your user has the feature update:user',
+        message: 'You do not have permission to perform this action',
+        name: 'ForbiddenError',
+        statusCode: 403,
+      })
+    })
+
+    test('With duplicated "email"', async () => {
       await createUser({
         email: 'email@tiago.com',
       })
       const createdUser2 = await createUser({
         password: 'password123',
       })
+      const activatedUser2 = await activateUser({ id: createdUser2.id })
+      const sessionObject2 = await createSession({ id: activatedUser2.id })
 
       const response = await fetch(
         `http://localhost:3000/api/v1/users/${createdUser2.username}`,
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject2.token}`,
+          },
           body: JSON.stringify({
             email: 'email@tiago.com',
           }),
@@ -95,11 +192,16 @@ describe('PATCH /api/v1/users/[username]', () => {
       const createdUser = await createUser({
         username: 'uniqueUser1',
       })
+      const activatedUser = await activateUser({ id: createdUser.id })
+      const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
         'http://localhost:3000/api/v1/users/uniqueUser1',
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject.token}`,
+          },
           body: JSON.stringify({
             username: 'uniqueUser2',
           }),
@@ -113,7 +215,11 @@ describe('PATCH /api/v1/users/[username]', () => {
         username: responseBody.username,
         email: createdUser.email,
         password: responseBody.password,
-        features: responseBody.features,
+        features: [
+          Feature.CREATE_SESSION,
+          Feature.READ_SESSION,
+          Feature.UPDATE_USER,
+        ],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       })
@@ -128,11 +234,16 @@ describe('PATCH /api/v1/users/[username]', () => {
       const user = await createUser({
         email: 'uniqueEmail1@tiago.com',
       })
+      const activatedUser = await activateUser({ id: user.id })
+      const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
         `http://localhost:3000/api/v1/users/${user.username}`,
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject.token}`,
+          },
           body: JSON.stringify({
             email: 'uniqueEmail2@tiago.com',
           }),
@@ -161,11 +272,16 @@ describe('PATCH /api/v1/users/[username]', () => {
       const userCreated = await createUser({
         password: 'password123',
       })
+      const activatedUser = await activateUser({ id: userCreated.id })
+      const sessionObject2 = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
         `http://localhost:3000/api/v1/users/${userCreated.username}`,
         {
           method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${sessionObject2.token}`,
+          },
           body: JSON.stringify({
             password: 'newPassword',
           }),

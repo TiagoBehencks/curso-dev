@@ -1,12 +1,13 @@
-import retry from 'async-retry'
 import { faker } from '@faker-js/faker'
+import retry from 'async-retry'
 
 import { env } from 'env'
 import { query } from 'infra/database'
-import { runPendingMigrations as modelRunPendingMigrations } from 'models/migrator'
-import { User, user, UserInputValues } from 'models/user'
-import { session } from 'models/session'
+import { activation } from 'models/activation'
 import { Feature } from 'models/features'
+import { runPendingMigrations as modelRunPendingMigrations } from 'models/migrator'
+import { session } from 'models/session'
+import { User, user, UserInputValues } from 'models/user'
 
 const emailHttpUrl = `http://${env.EMAIL_HTTP_HOST}:${env.EMAIL_HTTP_PORT}`
 
@@ -72,6 +73,10 @@ export async function createUser({
   }
 
   return createdUser
+}
+
+export async function activateUser({ id }: Pick<User, 'id'>): Promise<User> {
+  return await activation.activeUserByUserId({ id })
 }
 
 export async function createSession({ id }: Pick<User, 'id'>) {

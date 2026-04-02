@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { AppError, UnauthorizedError } from 'infra/errors'
+import { AppError, ForbiddenError, UnauthorizedError } from 'infra/errors'
 import { Feature } from 'models/features'
 import { session } from 'models/session'
 import { user } from 'models/user'
@@ -11,14 +11,22 @@ import { authorization } from 'models/authorization'
 
 export async function GET(request: NextRequest) {
   try {
-    await canRequest({
-      request,
-      feature: Feature.READ_SESSION,
-    })
-    const sessionToken = request.cookies.get('session_id')?.value || ''
+    const sessionToken = request.cookies.get('session_id')?.value
+
+    if (!sessionToken) {
+      throw new ForbiddenError({
+        message: 'You do not have permission to perform this action',
+        action: 'Check if your user has the feature read:session',
+      })
+    }
 
     const sessionObject = await session.findOneValidByToken({
       token: sessionToken,
+    })
+
+    await canRequest({
+      request,
+      feature: Feature.READ_SESSION,
     })
 
     const userFound = await user.findOneById(sessionObject.user_id)

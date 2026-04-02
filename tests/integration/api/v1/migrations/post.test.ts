@@ -32,12 +32,16 @@ describe('POST /api/v1/migrations', () => {
           }
         )
 
-        expect(response2.status).toBe(200)
+        expect(response2.status).toBe(403)
 
         const response2Body = await response2.json()
 
-        expect(Array.isArray(response2Body)).toBe(true)
-        expect(response2Body.length).toBe(0)
+        expect(response2Body).toEqual({
+          name: 'ForbiddenError',
+          message: 'You do not have permission to perform this action',
+          action: 'Check if your user has the feature run:migrations',
+          statusCode: 403,
+        })
       })
     })
   })

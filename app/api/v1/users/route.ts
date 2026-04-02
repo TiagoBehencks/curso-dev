@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { AppError } from 'infra/errors'
+import { AppError, TooManyRequestsError } from 'infra/errors'
 import { canRequest } from 'infra/middleware'
 import { rateLimit, RATE_LIMITS } from 'infra/rate-limit'
 
@@ -44,6 +44,12 @@ export async function POST(request: Request) {
       status: 201,
     })
   } catch (error) {
+    if (error instanceof TooManyRequestsError) {
+      return NextResponse.json(error.toJSON(), {
+        status: error.statusCode,
+      })
+    }
+
     if (error instanceof AppError) {
       return NextResponse.json(
         {

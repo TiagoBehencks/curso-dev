@@ -8,6 +8,8 @@ import {
   activateUser,
 } from 'tests/orchestrator'
 
+import { webserver } from 'infra/webserver'
+
 import { activation } from 'models/activation'
 import { user } from 'models/user'
 import { Feature } from 'models/features'
@@ -20,7 +22,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
   describe('Anonymous user', () => {
     test('With nonexistent token', async () => {
       const response = await fetch(
-        'http://localhost:3000/api/v1/activations/3fcfc2fd-bdc3-405a-a163-3d11a541593c',
+        `${webserver.origin}/api/v1/activations/3fcfc2fd-bdc3-405a-a163-3d11a541593c`,
         {
           method: 'PATCH',
         }
@@ -31,12 +33,12 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       const responseBody = await response.json()
 
       expect(responseBody).toEqual({
-        statusCode: 404,
         message:
           'The activation token was not found in the system or has expired',
         action: 'Make a new registration',
         cause: 'TOKEN_NOT_FOUND',
         name: 'NotFoundError',
+        statusCode: 404,
       })
     })
 
@@ -53,7 +55,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       vitest.useRealTimers()
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/activations/${expiredActivationToken.id}`,
+        `${webserver.origin}/api/v1/activations/${expiredActivationToken.id}`,
         {
           method: 'PATCH',
         }
@@ -64,12 +66,12 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       const responseBody = await response.json()
 
       expect(responseBody).toEqual({
-        statusCode: 404,
         message:
           'The activation token was not found in the system or has expired',
         action: 'Make a new registration',
         cause: 'TOKEN_NOT_FOUND',
         name: 'NotFoundError',
+        statusCode: 404,
       })
     })
 
@@ -80,7 +82,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       })
 
       const responseFirstUse = await fetch(
-        `http://localhost:3000/api/v1/activations/${activationToken.id}`,
+        `${webserver.origin}/api/v1/activations/${activationToken.id}`,
         {
           method: 'PATCH',
         }
@@ -89,7 +91,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       expect(responseFirstUse.status).toBe(200)
 
       const responseSecondUse = await fetch(
-        `http://localhost:3000/api/v1/activations/${activationToken.id}`,
+        `${webserver.origin}/api/v1/activations/${activationToken.id}`,
         {
           method: 'PATCH',
         }
@@ -100,12 +102,12 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       const responseBody = await responseSecondUse.json()
 
       expect(responseBody).toEqual({
-        statusCode: 404,
         message:
           'The activation token was not found in the system or has expired',
         action: 'Make a new registration',
         cause: 'TOKEN_NOT_FOUND',
         name: 'NotFoundError',
+        statusCode: 404,
       })
     })
 
@@ -116,7 +118,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/activations/${activationToken.id}`,
+        `${webserver.origin}/api/v1/activations/${activationToken.id}`,
         {
           method: 'PATCH',
         }
@@ -173,7 +175,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/activations/${activationToken.id}`,
+        `${webserver.origin}/api/v1/activations/${activationToken.id}`,
         {
           method: 'PATCH',
         }
@@ -184,10 +186,10 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       const responseBody = await response.json()
 
       expect(responseBody).toEqual({
-        statusCode: 403,
         message: 'User is already activated',
         action: 'Contact support if you think this is a mistake',
         name: 'ForbiddenError',
+        statusCode: 403,
       })
     })
   })
@@ -204,7 +206,7 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/activations/${activationTokenUser2.id}`,
+        `${webserver.origin}/api/v1/activations/${activationTokenUser2.id}`,
         {
           method: 'PATCH',
           headers: {
@@ -218,10 +220,10 @@ describe('PATH /api/v1/activation/[token_id]', () => {
       const responseBody = await response.json()
 
       expect(responseBody).toEqual({
-        statusCode: 403,
         message: 'You do not have permission to perform this action',
         action: 'Check if your user has the feature read:activation_token',
         name: 'ForbiddenError',
+        statusCode: 403,
       })
     })
   })

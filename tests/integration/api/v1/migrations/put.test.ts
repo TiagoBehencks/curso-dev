@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'vitest'
 
+import { webserver } from 'infra/webserver'
+
 describe('PUT /api/v1/migrations', () => {
   describe('Anonymous user', () => {
     test('Retrieving current system status', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/migrations', {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         method: 'PUT',
       })
 

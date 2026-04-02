@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from 'vitest'
 
+import { webserver } from 'infra/webserver'
 import { Feature } from 'models/features'
 
 import {
@@ -17,7 +18,7 @@ beforeAll(async () => {
 describe('GET /api/v1/migrations', () => {
   describe('Anonymous user', () => {
     test('Retrieving pending migrations', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/migrations')
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`)
 
       expect(response.status).toBe(403)
 
@@ -33,6 +34,21 @@ describe('GET /api/v1/migrations', () => {
   })
 
   describe('Default user', () => {
+    test('Retrieving pending migrations', async () => {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`)
+
+      expect(response.status).toBe(403)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        name: 'ForbiddenError',
+        message: 'You do not have permission to perform this action',
+        action: 'Check if your user has the feature get:pending_migrations',
+        statusCode: 403,
+      })
+    })
+
     test('With `run:migrations`', async () => {
       const defautlUser = await createUser({})
       const activateddefautlUser = await activateUser({
@@ -43,7 +59,7 @@ describe('GET /api/v1/migrations', () => {
         id: activateddefautlUser.id,
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/migrations', {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         headers: {
           cookie: `session_id=${defautlUserSession.token}`,
         },
@@ -63,7 +79,7 @@ describe('GET /api/v1/migrations', () => {
   })
 
   describe('Privileged user', () => {
-    test('With `run:migrations`', async () => {
+    test('With `get:pending_migrations`', async () => {
       const privilegedUser = await createUser({})
       const activatedPrivilegedUser = await activateUser({
         id: privilegedUser.id,
@@ -78,7 +94,7 @@ describe('GET /api/v1/migrations', () => {
         id: activatedPrivilegedUser.id,
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/migrations', {
+      const response = await fetch(`${webserver.origin}/api/v1/migrations`, {
         headers: {
           cookie: `session_id=${privilegedUserSession.token}`,
         },

@@ -23,9 +23,7 @@ describe('GET /api/v1/users/[username]', () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: 'Tiago',
-        email: createdUser.email,
         features: createdUser.features,
-        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       })
@@ -36,7 +34,7 @@ describe('GET /api/v1/users/[username]', () => {
     })
 
     test('With exact case missmatch', async () => {
-      const createdUser = await createUser({
+      await createUser({
         username: 'Missmatch',
       })
 
@@ -51,8 +49,6 @@ describe('GET /api/v1/users/[username]', () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: 'Missmatch',
-        email: createdUser.email,
-        password: responseBody.password,
         features: responseBody.features,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,

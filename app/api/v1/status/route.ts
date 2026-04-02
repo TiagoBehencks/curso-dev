@@ -31,9 +31,6 @@ export async function GET() {
       cause: error,
     })
 
-    console.log('\n Erro dentro do catch do controller')
-    console.error(publicErrorObject.message)
-
     return NextResponse.json(
       { error: 'Failed to get status', details: publicErrorObject },
       { status: 500 }

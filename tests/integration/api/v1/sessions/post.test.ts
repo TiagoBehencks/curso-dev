@@ -23,6 +23,7 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.1',
         },
         body: JSON.stringify({
           email: 'wrongemail@email.com',
@@ -52,6 +53,7 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.2',
         },
         body: JSON.stringify({
           email: correctEmail,
@@ -81,6 +83,7 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.3',
         },
         body: JSON.stringify({
           email: 'wrong@email.com',
@@ -111,6 +114,7 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.4',
         },
         body: JSON.stringify({
           email: 'correct@email.com',
@@ -164,6 +168,7 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.5',
         },
         body: JSON.stringify({
           email: '',
@@ -179,10 +184,94 @@ describe('POST /api/v1/sessions', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.1.6',
         },
       })
 
       expect(response.status).toBe(500)
+    })
+
+    test('exceeds rate limit, then returns 429', async () => {
+      const testIp = '192.168.1.100'
+      const maxAttempts = 5
+
+      for (let i = 0; i < maxAttempts; i++) {
+        const response = await fetch('http://localhost:3000/api/v1/sessions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': testIp,
+          },
+          body: JSON.stringify({
+            email: 'nonexistent@email.com',
+            password: 'wrong-password',
+          }),
+        })
+        expect(response.status).toBe(401)
+      }
+
+      const rateLimitedResponse = await fetch(
+        'http://localhost:3000/api/v1/sessions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': testIp,
+          },
+          body: JSON.stringify({
+            email: 'nonexistent@email.com',
+            password: 'wrong-password',
+          }),
+        }
+      )
+
+      expect(rateLimitedResponse.status).toBe(429)
+
+      const responseBody = await rateLimitedResponse.json()
+
+      expect(responseBody).toMatchObject({
+        name: 'TooManyRequestsError',
+        message: 'Too many requests',
+        statusCode: 429,
+      })
+      expect(responseBody.action).toMatch(/Please try again in \d+ seconds/)
+      expect(responseBody.retryAfter).toBeGreaterThan(0)
+    })
+
+    test('different IPs have independent rate limits', async () => {
+      const ip1 = '192.168.1.101'
+      const ip2 = '192.168.1.102'
+
+      for (let i = 0; i < 5; i++) {
+        await fetch('http://localhost:3000/api/v1/sessions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': ip1,
+          },
+          body: JSON.stringify({
+            email: 'nonexistent1@email.com',
+            password: 'wrong-password',
+          }),
+        })
+      }
+
+      const responseFromDifferentIp = await fetch(
+        'http://localhost:3000/api/v1/sessions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': ip2,
+          },
+          body: JSON.stringify({
+            email: 'nonexistent2@email.com',
+            password: 'wrong-password',
+          }),
+        }
+      )
+
+      expect(responseFromDifferentIp.status).toBe(401)
     })
   })
 })

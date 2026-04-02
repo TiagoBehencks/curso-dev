@@ -33,11 +33,7 @@ describe('GET /api/v1/user', () => {
   })
   describe('Default user', () => {
     test('with valid session', async () => {
-      const {
-        id: userId,
-        email,
-        password,
-      } = await createUser({
+      const { id: userId } = await createUser({
         username: 'UserWithValidSession',
         features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
       })
@@ -63,8 +59,6 @@ describe('GET /api/v1/user', () => {
       expect(responseBody).toEqual({
         id: userId,
         username: 'UserWithValidSession',
-        email,
-        password,
         features: responseBody.features,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
@@ -205,8 +199,6 @@ describe('GET /api/v1/user', () => {
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: 'UserWith5MinutesLeftInSession',
-        email: createdUser.email,
-        password: createdUser.password,
         features: responseBody.features,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,

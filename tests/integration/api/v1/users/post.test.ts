@@ -15,13 +15,14 @@ beforeAll(async () => {
   await runPendingMigrations()
 })
 
-describe.only('POST /api/v1/users', () => {
+describe('POST /api/v1/users', () => {
   describe('Anonymous user', () => {
     test('With unique and valid data', async () => {
       const response = await fetch('http://localhost:3000/api/v1/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.1',
         },
         body: JSON.stringify({
           username: 'tiago',
@@ -37,9 +38,7 @@ describe.only('POST /api/v1/users', () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: 'tiago',
-        email: 'tiago@tiago.com',
         features: responseBody.features,
-        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       })
@@ -70,6 +69,7 @@ describe.only('POST /api/v1/users', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.2',
         },
         body: JSON.stringify({
           username: 'email duplicate1',
@@ -84,6 +84,7 @@ describe.only('POST /api/v1/users', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.2',
         },
         body: JSON.stringify({
           username: 'email duplicate2',
@@ -109,6 +110,7 @@ describe.only('POST /api/v1/users', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.3',
         },
         body: JSON.stringify({
           username: 'usernameduplicate',
@@ -123,6 +125,7 @@ describe.only('POST /api/v1/users', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.3',
         },
         body: JSON.stringify({
           username: 'usernameduplicate',
@@ -142,6 +145,93 @@ describe.only('POST /api/v1/users', () => {
         statusCode: 400,
       })
     })
+
+    test('exceeds rate limit, then returns 429', async () => {
+      const testIp = '192.168.2.100'
+      const maxAttempts = 3
+
+      for (let i = 0; i < maxAttempts; i++) {
+        const response = await fetch('http://localhost:3000/api/v1/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': testIp,
+          },
+          body: JSON.stringify({
+            username: `ratelimituser${Date.now()}_${i}`,
+            email: `ratelimit${Date.now()}_${i}@email.com`,
+            password: 'password123',
+          }),
+        })
+        expect(response.status).toBe(201)
+      }
+
+      const rateLimitedResponse = await fetch(
+        'http://localhost:3000/api/v1/users',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': testIp,
+          },
+          body: JSON.stringify({
+            username: `ratelimituser${Date.now()}_final`,
+            email: `ratelimit${Date.now()}_final@email.com`,
+            password: 'password123',
+          }),
+        }
+      )
+
+      expect(rateLimitedResponse.status).toBe(429)
+
+      const responseBody = await rateLimitedResponse.json()
+
+      expect(responseBody).toMatchObject({
+        name: 'TooManyRequestsError',
+        message: 'Too many requests',
+        statusCode: 429,
+      })
+      expect(responseBody.action).toMatch(/Please try again in \d+ seconds/)
+      expect(responseBody.retryAfter).toBeGreaterThan(0)
+    })
+
+    test('different IPs have independent rate limits', async () => {
+      const ip1 = '192.168.2.101'
+      const ip2 = '192.168.2.102'
+
+      for (let i = 0; i < 3; i++) {
+        await fetch('http://localhost:3000/api/v1/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': ip1,
+          },
+          body: JSON.stringify({
+            username: `ip1user${Date.now()}_${i}`,
+            email: `ip1_${Date.now()}_${i}@email.com`,
+            password: 'password123',
+          }),
+        })
+      }
+
+      const responseFromDifferentIp = await fetch(
+        'http://localhost:3000/api/v1/users',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Forwarded-For': ip2,
+          },
+          body: JSON.stringify({
+            username: `ip2user${Date.now()}`,
+            email: `ip2_${Date.now()}@email.com`,
+            password: 'password123',
+          }),
+        }
+      )
+
+      expect(responseFromDifferentIp.status).toBe(201)
+    })
   })
 
   describe('Default user', () => {
@@ -155,6 +245,7 @@ describe.only('POST /api/v1/users', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Forwarded-For': '10.0.2.4',
           Cookie: `session_id=${sessionObject.token}`,
         },
         body: JSON.stringify({

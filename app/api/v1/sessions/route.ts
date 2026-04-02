@@ -7,9 +7,21 @@ import { authentication, AuthenticationUserData } from 'models/authentication'
 import { session } from 'models/session'
 import { authorization } from 'models/authorization'
 import { Feature } from 'models/features'
+import { rateLimit, RATE_LIMITS } from 'infra/rate-limit'
 
 export async function POST(request: Request) {
   try {
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
+
+    await rateLimit.checkRateLimit({
+      ip: clientIp,
+      endpoint: 'sessions',
+      ...RATE_LIMITS.sessions,
+    })
+
     const body = await request.json()
     const userInputValues = body as AuthenticationUserData
 

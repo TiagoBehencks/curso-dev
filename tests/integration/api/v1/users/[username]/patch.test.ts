@@ -6,6 +6,7 @@ import { password } from 'models/password'
 import { user } from 'models/user'
 import {
   activateUser,
+  addFeaturesToUser,
   createSession,
   createUser,
   runPendingMigrations,
@@ -214,7 +215,6 @@ describe('PATCH /api/v1/users/[username]', () => {
         id: responseBody.id,
         username: responseBody.username,
         email: createdUser.email,
-        password: responseBody.password,
         features: [
           Feature.CREATE_SESSION,
           Feature.READ_SESSION,
@@ -255,8 +255,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: user.username,
-        email: 'uniqueEmail2@tiago.com',
-        password: responseBody.password,
+        email: responseBody.email,
         features: responseBody.features,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
@@ -294,7 +293,6 @@ describe('PATCH /api/v1/users/[username]', () => {
         id: responseBody.id,
         username: userCreated.username,
         email: userCreated.email,
-        password: responseBody.password,
         features: responseBody.features,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
@@ -320,6 +318,56 @@ describe('PATCH /api/v1/users/[username]', () => {
       )
 
       expect(incorrectPasswordMatch).toBe(false)
+    })
+  })
+
+  describe('Privileged user', () => {
+    test('With `update:user:others` targeting `defaultUser`', async () => {
+      const privilegedUser = await createUser({})
+      const activatedPrivilegedUser = await activateUser({
+        id: privilegedUser.id,
+      })
+
+      await addFeaturesToUser({
+        id: activatedPrivilegedUser.id,
+        features: [Feature.UPDATE_USER_OTHERS],
+      })
+
+      const privilegedUserSession = await createSession({
+        id: activatedPrivilegedUser.id,
+      })
+
+      const defaultUser = await createUser({})
+
+      const response = await fetch(
+        `http://localhost:3000/api/v1/users/${defaultUser.username}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Cookie: `session_id=${privilegedUserSession.token}`,
+          },
+          body: JSON.stringify({
+            username: 'alteredByPrivilegedUser',
+          }),
+        }
+      )
+
+      expect(response.status).toBe(200)
+
+      const responseBody = await response.json()
+
+      expect(responseBody).toEqual({
+        id: defaultUser.id,
+        username: 'alteredByPrivilegedUser',
+        features: defaultUser.features,
+        created_at: responseBody.created_at,
+        updated_at: responseBody.updated_at,
+      })
+
+      expect(uuidVersion(responseBody.id)).toBe(4)
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN()
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN()
+      expect(responseBody.updated_at > responseBody.created_at).toBe(true)
     })
   })
 })

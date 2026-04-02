@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { AppError, UnauthorizedError } from 'infra/errors'
+import { Feature } from 'models/features'
 import { session } from 'models/session'
 import { user } from 'models/user'
-import { Feature } from 'models/features'
 
 import { clearSessionCookie, setSessionCookie } from 'infra/cookies'
 import { canRequest } from 'infra/middleware'
+import { authorization } from 'models/authorization'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,8 +26,13 @@ export async function GET(request: NextRequest) {
     const renewedSessionObject = await session.renewed({
       id: sessionObject.id,
     })
+    const secureOutputValues = authorization.filterOutput({
+      user: userFound,
+      feature: Feature.READ_SESSION,
+      resource: userFound,
+    })
 
-    const response = NextResponse.json(userFound, { status: 200 })
+    const response = NextResponse.json(secureOutputValues, { status: 200 })
 
     const responseWithCookies = setSessionCookie({
       token: renewedSessionObject.token,

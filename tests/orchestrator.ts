@@ -44,45 +44,6 @@ async function fetchEmailPage() {
   }
 }
 
-export async function cleanDatabase() {
-  await query('drop schema public cascade; create schema public;')
-}
-
-export async function runPendingMigrations() {
-  await modelRunPendingMigrations()
-}
-
-type CreateUserParams = Partial<UserInputValues> & {
-  features?: Feature[]
-}
-
-export async function createUser({
-  username,
-  email,
-  password,
-  features,
-}: CreateUserParams): Promise<User> {
-  const createdUser = await user.create({
-    username: username || faker.internet.username().replace(/[_.-]/g, ''),
-    email: email || faker.internet.email(),
-    password: password || faker.internet.password(),
-  })
-
-  if (features && features.length > 0) {
-    await user.setFeatures({ id: createdUser.id, features })
-  }
-
-  return createdUser
-}
-
-export async function activateUser({ id }: Pick<User, 'id'>): Promise<User> {
-  return await activation.activeUserByUserId({ id })
-}
-
-export async function createSession({ id }: Pick<User, 'id'>) {
-  return await session.create(id)
-}
-
 export async function deleteAllEmails() {
   await fetch(`${emailHttpUrl}/messages`, {
     method: 'DELETE',
@@ -119,6 +80,64 @@ export async function getLastEmail(): Promise<Mail | undefined> {
   } catch (error) {
     throw new Error(`Erro em getLastEmail: ${(error as Error).message}`)
   }
+}
+
+export async function cleanDatabase() {
+  await query('drop schema public cascade; create schema public;')
+}
+
+export async function runPendingMigrations() {
+  await modelRunPendingMigrations()
+}
+
+type CreateUserParams = Partial<UserInputValues> & {
+  features?: Feature[]
+}
+
+export async function createUser({
+  username,
+  email,
+  password,
+  features,
+}: CreateUserParams): Promise<User> {
+  let createdUser: User
+
+  createdUser = await user.create({
+    username: username || faker.internet.username().replace(/[_.-]/g, ''),
+    email: email || faker.internet.email(),
+    password: password || faker.internet.password(),
+  })
+
+  if (features && features.length > 0) {
+    createdUser = await addFeaturesToUser({
+      id: createdUser.id,
+      features,
+    })
+  }
+
+  return createdUser
+}
+
+export async function addFeaturesToUser({
+  id,
+  features,
+}: Pick<User, 'id' | 'features'>) {
+  const userToUpdate = await user.findOneById(id)
+
+  const updatedFeatures = [...new Set([...userToUpdate.features, ...features])]
+
+  return await user.setFeatures({
+    id,
+    features: updatedFeatures,
+  })
+}
+
+export async function activateUser({ id }: Pick<User, 'id'>): Promise<User> {
+  return await activation.activeUserByUserId({ id })
+}
+
+export async function createSession({ id }: Pick<User, 'id'>) {
+  return await session.create(id)
 }
 
 export function extractUUIDFromText(text: string): string | null {

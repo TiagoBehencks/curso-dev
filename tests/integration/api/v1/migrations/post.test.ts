@@ -1,3 +1,4 @@
+import exp from 'constants'
 import { describe, expect, test } from 'vitest'
 
 describe('POST /api/v1/migrations', () => {
@@ -11,11 +12,18 @@ describe('POST /api/v1/migrations', () => {
           }
         )
 
-        expect(response1.status).toBe(201)
+        expect(response1.status).toBe(403)
 
         const responseBody = await response1.json()
-        expect(Array.isArray(responseBody)).toBe(true)
+
+        expect(responseBody).toEqual({
+          name: 'ForbiddenError',
+          message: 'You do not have permission to perform this action',
+          action: 'Check if your user has the feature run:migrations',
+          statusCode: 403,
+        })
       })
+
       test('For the second time', async () => {
         const response2 = await fetch(
           'http://localhost:3000/api/v1/migrations',

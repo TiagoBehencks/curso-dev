@@ -5,6 +5,7 @@ import {
   runPendingMigrations,
   createUser,
   createSession,
+  activateUser,
 } from 'tests/orchestrator'
 
 import { activation } from 'models/activation'
@@ -165,9 +166,8 @@ describe('PATH /api/v1/activation/[token_id]', () => {
     })
 
     test('With valid token but already activated user', async () => {
-      const createdUser = await createUser({
-        features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
-      })
+      const createdUser = await createUser({})
+      await activateUser({ id: createdUser.id })
       const activationToken = await activation.create({
         id: createdUser.id,
       })
@@ -194,9 +194,8 @@ describe('PATH /api/v1/activation/[token_id]', () => {
 
   describe('Default user', () => {
     test('With valid token, but already logged in user', async () => {
-      const user1 = await createUser({
-        features: [Feature.CREATE_SESSION, Feature.READ_SESSION],
-      })
+      const user1 = await createUser({})
+      await activateUser({ id: user1.id })
       const user1SessionObject = await createSession({ id: user1.id })
 
       const user2 = await createUser({})

@@ -2,13 +2,26 @@ import { NextResponse } from 'next/server'
 
 import { AppError } from 'infra/errors'
 import { canRequest } from 'infra/middleware'
+import { rateLimit, RATE_LIMITS } from 'infra/rate-limit'
 
-import { UserInputValues, user } from 'models/user'
 import { activation } from 'models/activation'
+import { authorization } from 'models/authorization'
 import { Feature } from 'models/features'
+import { UserInputValues, user } from 'models/user'
 
 export async function POST(request: Request) {
   try {
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
+
+    await rateLimit.checkRateLimit({
+      ip: clientIp,
+      endpoint: 'users',
+      ...RATE_LIMITS.users,
+    })
+
     await canRequest({ request, feature: Feature.CREATE_USER })
     const body = await request.json()
     const userInputValues = body as UserInputValues
@@ -21,7 +34,13 @@ export async function POST(request: Request) {
       activationToken: id,
     })
 
-    return NextResponse.json(newUser, {
+    const secureOutputValues = authorization.filterOutput({
+      user: newUser,
+      feature: Feature.CREATE_USER,
+      resource: newUser,
+    })
+
+    return NextResponse.json(secureOutputValues, {
       status: 201,
     })
   } catch (error) {

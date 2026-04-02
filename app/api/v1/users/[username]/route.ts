@@ -12,11 +12,25 @@ export async function GET(
   { params }: { params: Promise<{ username: string }> }
 ) {
   try {
+    // await canRequest({
+    //   request,
+    //   feature: Feature.READ_USER,
+    // })
+
+    const userTryingToGet = JSON.parse(
+      request.headers.get('x-user') || '{}'
+    ) as User
     const { username } = await params
 
     const userFound = await user.findOneByUsername(username)
 
-    return NextResponse.json(userFound, {
+    const secureOutputValues = authorization.filterOutput({
+      user: userTryingToGet,
+      feature: Feature.READ_USER,
+      resource: userFound,
+    })
+
+    return NextResponse.json(secureOutputValues, {
       status: 200,
     })
   } catch (error) {
@@ -73,8 +87,13 @@ export async function PATCH(
     }
 
     const updatedUser = await user.update(username, userInputValues)
+    const secureOutputValues = authorization.filterOutput({
+      user: userTryingToBeUpdated,
+      feature: Feature.UPDATE_USER,
+      resource: updatedUser,
+    })
 
-    return NextResponse.json(updatedUser, {
+    return NextResponse.json(secureOutputValues, {
       status: 200,
     })
   } catch (error) {

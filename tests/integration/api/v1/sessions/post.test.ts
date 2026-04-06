@@ -3,6 +3,9 @@ import setCookieParser from 'set-cookie-parser'
 import { version as uuidVersion } from 'uuid'
 
 import { createUser, runPendingMigrations } from 'tests/orchestrator'
+
+import { webserver } from 'infra/webserver'
+
 import { session } from 'models/session'
 import { Feature } from 'models/features'
 
@@ -19,7 +22,7 @@ describe('POST /api/v1/sessions', () => {
         features: [Feature.CREATE_SESSION],
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +52,7 @@ describe('POST /api/v1/sessions', () => {
         email: 'correctemail@email.com',
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +82,7 @@ describe('POST /api/v1/sessions', () => {
         password: 'password',
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +113,7 @@ describe('POST /api/v1/sessions', () => {
         features: [Feature.CREATE_SESSION],
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +167,7 @@ describe('POST /api/v1/sessions', () => {
     })
 
     test('given empty credentials, when creating a session, then returns 400', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +183,7 @@ describe('POST /api/v1/sessions', () => {
     })
 
     test('without `body`', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/sessions', {
+      const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +199,7 @@ describe('POST /api/v1/sessions', () => {
       const maxAttempts = 5
 
       for (let i = 0; i < maxAttempts; i++) {
-        const response = await fetch('http://localhost:3000/api/v1/sessions', {
+        const response = await fetch(`${webserver.origin}/api/v1/sessions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -211,7 +214,7 @@ describe('POST /api/v1/sessions', () => {
       }
 
       const rateLimitedResponse = await fetch(
-        'http://localhost:3000/api/v1/sessions',
+        `${webserver.origin}/api/v1/sessions`,
         {
           method: 'POST',
           headers: {
@@ -243,7 +246,7 @@ describe('POST /api/v1/sessions', () => {
       const ip2 = '192.168.1.102'
 
       for (let i = 0; i < 5; i++) {
-        await fetch('http://localhost:3000/api/v1/sessions', {
+        await fetch(`${webserver.origin}/api/v1/sessions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -257,7 +260,7 @@ describe('POST /api/v1/sessions', () => {
       }
 
       const responseFromDifferentIp = await fetch(
-        'http://localhost:3000/api/v1/sessions',
+        `${webserver.origin}/api/v1/sessions`,
         {
           method: 'POST',
           headers: {

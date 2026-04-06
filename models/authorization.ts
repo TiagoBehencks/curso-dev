@@ -98,6 +98,7 @@ type OutputStrategyMap = {
   [Feature.UPDATE_USER_OTHERS]: UserPublicData
   [Feature.RUN_MIGRATIONS]: RunMigration[]
   [Feature.GET_PENDING_MIGRATIONS]: RunMigration[]
+  [Feature.READ_STATUS]: UserPublicData
 }
 
 type OutputStrategyFunctions = {
@@ -118,6 +119,7 @@ type OutputStrategyFunctions = {
   [Feature.GET_PENDING_MIGRATIONS]: (
     params: FormatMigrationsOutputParams
   ) => RunMigration[]
+  [Feature.READ_STATUS]: (params: FormatUserOutputParams) => UserPublicData
 }
 
 const OUTPUT_STRATEGIES: OutputStrategyFunctions = {
@@ -130,6 +132,7 @@ const OUTPUT_STRATEGIES: OutputStrategyFunctions = {
   [Feature.UPDATE_USER_OTHERS]: formatUserOutput,
   [Feature.RUN_MIGRATIONS]: formatMigrationsOutput,
   [Feature.GET_PENDING_MIGRATIONS]: formatMigrationsOutput,
+  [Feature.READ_STATUS]: formatUserOutput,
 }
 
 type FilterOutputParams<F extends Feature = Feature> = F extends

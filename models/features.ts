@@ -8,6 +8,7 @@ export enum Feature {
   UPDATE_USER_OTHERS = 'update:user:others',
   RUN_MIGRATIONS = 'run:migrations',
   GET_PENDING_MIGRATIONS = 'get:pending_migrations',
+  READ_STATUS = 'read:status',
 }
 
 const VALID_FEATURES = new Set<string>(Object.values(Feature))

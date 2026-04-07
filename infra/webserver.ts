@@ -7,7 +7,7 @@ function getOrigin() {
     return `https://${process.env.VERCEL_URL}`
   }
 
-  return 'https://behencks.com.br/'
+  return 'https://behenck.dev.br'
 }
 
 export const webserver = {

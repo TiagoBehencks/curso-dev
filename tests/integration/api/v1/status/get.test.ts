@@ -26,7 +26,8 @@ describe('GET /api/v1/status', () => {
       const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString()
       expect(responseBody.updated_at).toEqual(parsedUpdatedAt)
 
-      expect(responseBody.dependecies).toBeUndefined()
+      expect(responseBody.dependecies.database.max_connections).toBeDefined()
+      expect(responseBody.dependecies.database.opened_connections).toBeDefined()
     })
   })
 
@@ -46,7 +47,8 @@ describe('GET /api/v1/status', () => {
       const responseBody = await response.json()
 
       expect(responseBody.updated_at).toBeDefined()
-      expect(responseBody.dependecies).toBeUndefined()
+      expect(responseBody.dependecies.database.max_connections).toBeDefined()
+      expect(responseBody.dependecies.database.opened_connections).toBeDefined()
     })
 
     test('With read:status feature, returns full status', async () => {

@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
   try {
     const sessionToken = request.cookies.get('session_id')?.value
     const hasSession = !!sessionToken
+    const maxConnections = await getMaxConnection()
+    const openedConnections = await getOpenedConnections()
 
     let hasReadStatusFeature = false
 
@@ -31,6 +33,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
+          dependecies: {
+            database: {
+              max_connections: maxConnections,
+              opened_connections: openedConnections,
+            },
+          },
         },
         { status: 200 }
       )
@@ -50,21 +58,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
+          dependecies: {
+            database: {
+              max_connections: maxConnections,
+              opened_connections: openedConnections,
+            },
+          },
         },
         { status: 200 }
       )
     }
 
     const version = await getVersion()
-    const maxConnections = await getMaxConnection()
-    const openedConnections = await getOpenedConnections()
 
     return NextResponse.json(
       {
         updated_at: updatedAt,
         dependecies: {
           database: {
-            potgres_version: version,
+            postgres_version: version,
             max_connections: maxConnections,
             opened_connections: openedConnections,
           },

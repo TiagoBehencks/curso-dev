@@ -26,12 +26,6 @@ importers:
       cookie:
         specifier: ^1.0.2
         version: 1.1.1
-      dotenv:
-        specifier: 16.4.7
-        version: 16.4.7
-      dotenv-expand:
-        specifier: 12.0.1
-        version: 12.0.1
       lucide-react:
         specifier: ^0.475.0
         version: 0.475.0(react@19.0.0)
@@ -123,6 +117,12 @@ importers:
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0(@types/node@22.10.2)(typescript@5.7.2)
+      dotenv:
+        specifier: 16.4.7
+        version: 16.4.7
+      dotenv-expand:
+        specifier: 12.0.1
+        version: 12.0.1
       eslint:
         specifier: 9.17.0
         version: 9.17.0(jiti@2.6.1)

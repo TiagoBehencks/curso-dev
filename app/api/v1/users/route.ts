@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       status: 201,
     })
   } catch (error) {
+    console.error('Error in POST /api/v1/users:', error)
     if (error instanceof TooManyRequestsError) {
       return NextResponse.json(error.toJSON(), {
         status: error.statusCode,

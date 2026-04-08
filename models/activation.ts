@@ -62,7 +62,7 @@ async function sendEmailToUser({
   activationToken,
 }: SendEmailToUserParams) {
   await send({
-    from: 'Test <test@test.com.br>',
+    from: 'Test <email@behenck.dev.br>',
     to: email,
     subject: 'Activate your registration',
     text: `${username}, click on the link below to activate your registration:

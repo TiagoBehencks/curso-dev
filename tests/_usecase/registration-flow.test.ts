@@ -54,7 +54,7 @@ describe('Use case: Registration Flow (all successful)', () => {
   test('Receive activation email', async () => {
     const lastEmail = await getLastEmail()
 
-    expect(lastEmail.sender).toBe('<test@test.com.br>')
+    expect(lastEmail.sender).toBe('<contato@behenck.dev.br>')
     expect(lastEmail.recipients[0]).toEqual('<registrationflow@test.com>')
     expect(lastEmail.subject).toBe('Activate your registration')
     expect(lastEmail.text).toContain('RegistrationFlow')

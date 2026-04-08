@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { InternalServerError, MethodNotAllowedError } from 'infra/errors'
+import {
+  ForbiddenError,
+  InternalServerError,
+  MethodNotAllowedError,
+} from 'infra/errors'
 import { Feature } from 'models/features'
 import {
   getVersion,
   getMaxConnection,
   getOpenedConnections,
 } from 'infra/database'
-import { session } from 'models/session'
-import { user } from 'models/user'
-import { authorization } from 'models/authorization'
-import { ForbiddenError } from 'infra/errors'
 import { canRequest } from 'infra/middleware'
 
 export async function GET(request: NextRequest) {
+  let maxConnections: number
+  let openedConnections: number
+
   try {
     const sessionToken = request.cookies.get('session_id')?.value
     const hasSession = !!sessionToken
+    maxConnections = await getMaxConnection()
+    openedConnections = await getOpenedConnections()
 
     let hasReadStatusFeature = false
 
@@ -31,40 +36,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
-        },
-        { status: 200 }
-      )
-    }
-
-    const sessionObject = await session.findOneValidByToken({
-      token: sessionToken,
-    })
-    const userFound = await user.findOneById(sessionObject.user_id)
-
-    const canAccess = authorization.can({
-      user: userFound,
-      feature: Feature.READ_STATUS,
-    })
-
-    if (!canAccess) {
-      return NextResponse.json(
-        {
-          updated_at: updatedAt,
+          dependecies: {
+            database: {
+              max_connections: maxConnections,
+              opened_connections: openedConnections,
+            },
+          },
         },
         { status: 200 }
       )
     }
 
     const version = await getVersion()
-    const maxConnections = await getMaxConnection()
-    const openedConnections = await getOpenedConnections()
 
     return NextResponse.json(
       {
         updated_at: updatedAt,
         dependecies: {
           database: {
-            potgres_version: version,
+            postgres_version: version,
             max_connections: maxConnections,
             opened_connections: openedConnections,
           },
@@ -78,6 +68,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
+          dependecies: {
+            database: {
+              max_connections: maxConnections,
+              opened_connections: openedConnections,
+            },
+          },
         },
         { status: 200 }
       )

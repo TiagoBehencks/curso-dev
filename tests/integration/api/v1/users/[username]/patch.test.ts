@@ -1,9 +1,8 @@
 import { version as uuidVersion } from 'uuid'
 import { beforeAll, describe, expect, test } from 'vitest'
 
-import { Feature } from 'models/features'
-import { password } from 'models/password'
-import { user } from 'models/user'
+import { webserver } from 'infra/webserver'
+
 import {
   activateUser,
   addFeaturesToUser,
@@ -11,6 +10,10 @@ import {
   createUser,
   runPendingMigrations,
 } from 'tests/orchestrator'
+
+import { Feature } from 'models/features'
+import { password } from 'models/password'
+import { user } from 'models/user'
 
 beforeAll(async () => {
   await runPendingMigrations()
@@ -20,7 +23,7 @@ describe('PATCH /api/v1/users/[username]', () => {
   describe('Anonymous user', () => {
     test('With unique "username"', async () => {
       const response = await fetch(
-        'http://localhost:3000/api/v1/users/uniqueUser1',
+        `${webserver.origin}/api/v1/users/uniqueUser1`,
         {
           method: 'PATCH',
           body: JSON.stringify({
@@ -47,7 +50,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
-        'http://localhost:3000/api/v1/users/nonexistent',
+        `${webserver.origin}/api/v1/users/nonexistent`,
         {
           method: 'PATCH',
           headers: {
@@ -77,7 +80,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
-        'http://localhost:3000/api/v1/users/nonexistent',
+        `${webserver.origin}/api/v1/users/nonexistent`,
         {
           method: 'PATCH',
           headers: {
@@ -106,7 +109,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const activatedUser2 = await activateUser({ id: createdUser2.id })
       const sessionObject2 = await createSession({ id: activatedUser2.id })
 
-      const response = await fetch('http://localhost:3000/api/v1/users/user2', {
+      const response = await fetch(`${webserver.origin}/api/v1/users/user2`, {
         method: 'PATCH',
         headers: {
           Cookie: `session_id=${sessionObject2.token}`,
@@ -139,18 +142,15 @@ describe('PATCH /api/v1/users/[username]', () => {
       const activatedUser2 = await activateUser({ id: createdUser2.id })
       const sessionObject2 = await createSession({ id: activatedUser2.id })
 
-      const response = await fetch(
-        'http://localhost:3000/api/v1/users/userOne',
-        {
-          method: 'PATCH',
-          headers: {
-            Cookie: `session_id=${sessionObject2.token}`,
-          },
-          body: JSON.stringify({
-            username: 'user3',
-          }),
-        }
-      )
+      const response = await fetch(`${webserver.origin}/api/v1/users/userOne`, {
+        method: 'PATCH',
+        headers: {
+          Cookie: `session_id=${sessionObject2.token}`,
+        },
+        body: JSON.stringify({
+          username: 'user3',
+        }),
+      })
 
       expect(response.status).toBe(403)
 
@@ -175,7 +175,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject2 = await createSession({ id: activatedUser2.id })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/users/${createdUser2.username}`,
+        `${webserver.origin}/api/v1/users/${createdUser2.username}`,
         {
           method: 'PATCH',
           headers: {
@@ -197,7 +197,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
-        'http://localhost:3000/api/v1/users/uniqueUser1',
+        `${webserver.origin}/api/v1/users/uniqueUser1`,
         {
           method: 'PATCH',
           headers: {
@@ -238,7 +238,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/users/${user.username}`,
+        `${webserver.origin}/api/v1/users/${user.username}`,
         {
           method: 'PATCH',
           headers: {
@@ -275,7 +275,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const sessionObject2 = await createSession({ id: activatedUser.id })
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/users/${userCreated.username}`,
+        `${webserver.origin}/api/v1/users/${userCreated.username}`,
         {
           method: 'PATCH',
           headers: {
@@ -340,7 +340,7 @@ describe('PATCH /api/v1/users/[username]', () => {
       const defaultUser = await createUser({})
 
       const response = await fetch(
-        `http://localhost:3000/api/v1/users/${defaultUser.username}`,
+        `${webserver.origin}/api/v1/users/${defaultUser.username}`,
         {
           method: 'PATCH',
           headers: {

@@ -1,5 +1,7 @@
 import { beforeAll, describe, expect, test } from 'vitest'
 
+import { webserver } from 'infra/webserver'
+
 import {
   runPendingMigrations,
   createUser,
@@ -15,7 +17,7 @@ beforeAll(async () => {
 describe('GET /api/v1/status', () => {
   describe('Anonymous user', () => {
     test('Retrieving current system status, returns only updated_at', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/status')
+      const response = await fetch(`${webserver.origin}/api/v1/status`)
 
       expect(response.status).toBe(200)
 
@@ -36,7 +38,7 @@ describe('GET /api/v1/status', () => {
       const createdUser = await createUser({})
       const sessionObject = await createSession({ id: createdUser.id })
 
-      const response = await fetch('http://localhost:3000/api/v1/status', {
+      const response = await fetch(`${webserver.origin}/api/v1/status`, {
         headers: {
           Cookie: `session_id=${sessionObject.token}`,
         },
@@ -59,7 +61,7 @@ describe('GET /api/v1/status', () => {
       })
       const sessionObject = await createSession({ id: createdUser.id })
 
-      const response = await fetch('http://localhost:3000/api/v1/status', {
+      const response = await fetch(`${webserver.origin}/api/v1/status`, {
         headers: {
           Cookie: `session_id=${sessionObject.token}`,
         },

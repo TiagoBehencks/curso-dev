@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from 'vitest'
 import { version as uuidVersion } from 'uuid'
 
+import { webserver } from 'infra/webserver'
+
 import { createUser, runPendingMigrations } from 'tests/orchestrator'
 
 beforeAll(async () => {
@@ -14,7 +16,7 @@ describe('GET /api/v1/users/[username]', () => {
         username: 'Tiago',
       })
 
-      const response = await fetch('http://localhost:3000/api/v1/users/Tiago')
+      const response = await fetch(`${webserver.origin}/api/v1/users/Tiago`)
 
       expect(response.status).toBe(200)
 
@@ -38,9 +40,7 @@ describe('GET /api/v1/users/[username]', () => {
         username: 'Missmatch',
       })
 
-      const response = await fetch(
-        'http://localhost:3000/api/v1/users/missmatch'
-      )
+      const response = await fetch(`${webserver.origin}/api/v1/users/missmatch`)
 
       expect(response.status).toBe(200)
 
@@ -61,7 +61,7 @@ describe('GET /api/v1/users/[username]', () => {
 
     test('With nonexistent username', async () => {
       const response = await fetch(
-        'http://localhost:3000/api/v1/users/nonexistent'
+        `${webserver.origin}/api/v1/users/nonexistent`
       )
 
       expect(response.status).toBe(404)

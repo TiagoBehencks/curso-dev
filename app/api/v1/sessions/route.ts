@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       })
     }
 
-    const authenticatedUser = await authentication.getAuthenticatedUser({
+    const authenticatedUser = await authentication.getUser({
       email: userInputValues.email,
       password: userInputValues.password,
     })

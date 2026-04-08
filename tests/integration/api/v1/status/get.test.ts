@@ -71,11 +71,11 @@ describe('GET /api/v1/status', () => {
 
       expect(responseBody.updated_at).toBeDefined()
       expect(responseBody.dependecies).toBeDefined()
-      expect(responseBody.dependecies.database.potgres_version).toBeDefined()
+      expect(responseBody.dependecies.database.postgres_version).toBeDefined()
       expect(responseBody.dependecies.database.max_connections).toBeDefined()
       expect(responseBody.dependecies.database.opened_connections).toBeDefined()
 
-      expect(responseBody.dependecies.database.potgres_version).toBe('16.0')
+      expect(responseBody.dependecies.database.postgres_version).toBe('16.0')
       expect(responseBody.dependecies.database.max_connections).toBe(100)
       expect(responseBody.dependecies.database.opened_connections).toBe(1)
     })

@@ -1,14 +1,16 @@
 import { beforeAll, describe, expect, test } from 'vitest'
 import { version as uuidVersion } from 'uuid'
 
-import { user } from 'models/user'
-import { password } from 'models/password'
+import { webserver } from 'infra/webserver'
 
 import {
   runPendingMigrations,
   createUser,
   createSession,
 } from 'tests/orchestrator'
+
+import { user } from 'models/user'
+import { password } from 'models/password'
 import { Feature } from 'models/features'
 
 beforeAll(async () => {
@@ -18,7 +20,7 @@ beforeAll(async () => {
 describe('POST /api/v1/users', () => {
   describe('Anonymous user', () => {
     test('With unique and valid data', async () => {
-      const response = await fetch('http://localhost:3000/api/v1/users', {
+      const response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +67,7 @@ describe('POST /api/v1/users', () => {
     })
 
     test('With duplicate email', async () => {
-      const response1 = await fetch('http://localhost:3000/api/v1/users', {
+      const response1 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +82,7 @@ describe('POST /api/v1/users', () => {
 
       expect(response1.status).toBe(201)
 
-      const response2 = await fetch('http://localhost:3000/api/v1/users', {
+      const response2 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +108,7 @@ describe('POST /api/v1/users', () => {
     })
 
     test('With duplicate username', async () => {
-      const response1 = await fetch('http://localhost:3000/api/v1/users', {
+      const response1 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +123,7 @@ describe('POST /api/v1/users', () => {
 
       expect(response1.status).toBe(201)
 
-      const response2 = await fetch('http://localhost:3000/api/v1/users', {
+      const response2 = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +153,7 @@ describe('POST /api/v1/users', () => {
       const maxAttempts = 3
 
       for (let i = 0; i < maxAttempts; i++) {
-        const response = await fetch('http://localhost:3000/api/v1/users', {
+        const response = await fetch(`${webserver.origin}/api/v1/users`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -167,7 +169,7 @@ describe('POST /api/v1/users', () => {
       }
 
       const rateLimitedResponse = await fetch(
-        'http://localhost:3000/api/v1/users',
+        `${webserver.origin}/api/v1/users`,
         {
           method: 'POST',
           headers: {
@@ -200,7 +202,7 @@ describe('POST /api/v1/users', () => {
       const ip2 = '192.168.2.102'
 
       for (let i = 0; i < 3; i++) {
-        await fetch('http://localhost:3000/api/v1/users', {
+        await fetch(`${webserver.origin}/api/v1/users`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -215,7 +217,7 @@ describe('POST /api/v1/users', () => {
       }
 
       const responseFromDifferentIp = await fetch(
-        'http://localhost:3000/api/v1/users',
+        `${webserver.origin}/api/v1/users`,
         {
           method: 'POST',
           headers: {
@@ -241,7 +243,7 @@ describe('POST /api/v1/users', () => {
       })
       const sessionObject = await createSession({ id: createdUser.id })
 
-      const response = await fetch('http://localhost:3000/api/v1/users', {
+      const response = await fetch(`${webserver.origin}/api/v1/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

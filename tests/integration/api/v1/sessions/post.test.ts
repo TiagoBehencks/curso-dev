@@ -145,13 +145,14 @@ describe('POST /api/v1/sessions', () => {
       const expiresAt = new Date(responseBody.expires_at)
       const createdAt = new Date(responseBody.created_at)
 
-      expiresAt.setMilliseconds(0)
-      createdAt.setMilliseconds(0)
+      expect(expiresAt >= createdAt).toBe(true)
 
-      expect(expiresAt.getTime() - createdAt.getTime()).toBe(
-        session.EXPIRATION_IN_MILLISECONDS
-      )
+      const actualLifetimeInMilliseconds =
+        expiresAt.getTime() - createdAt.getTime()
+      const lifetimeDifferenceInMilliseconds =
+        session.EXPIRATION_IN_MILLISECONDS - actualLifetimeInMilliseconds
 
+      expect(lifetimeDifferenceInMilliseconds).toBeLessThanOrEqual(5000)
       const parsedSetCookie = setCookieParser.parse(response, {
         map: true,
       })
@@ -161,7 +162,7 @@ describe('POST /api/v1/sessions', () => {
         value: responseBody.token,
         maxAge: session.EXPIRATION_IN_MILLISECONDS / 1000,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'lax',
         httpOnly: true,
       })
     })

@@ -3,6 +3,8 @@ import retry from 'async-retry'
 
 import { env } from 'env'
 import { query } from 'infra/database'
+import { webserver } from 'infra/webserver'
+
 import { activation } from 'models/activation'
 import { Feature } from 'models/features'
 import { runPendingMigrations as modelRunPendingMigrations } from 'models/migrator'
@@ -24,7 +26,7 @@ async function waitForWebServer() {
 }
 
 async function fetchStatusPage() {
-  const response = await fetch('http://localhost:3000/api/v1/status')
+  const response = await fetch(`${webserver.origin}/api/v1/status`)
   if (response.status !== 200) {
     throw Error()
   }

@@ -13,7 +13,7 @@ type Password = {
   storedPassword: string
 }
 
-async function getAuthenticatedUser({
+async function getUser({
   email,
   password,
 }: AuthenticationUserData): Promise<User> {
@@ -63,5 +63,5 @@ async function getAuthenticatedUser({
 }
 
 export const authentication = {
-  getAuthenticatedUser,
+  getUser,
 }

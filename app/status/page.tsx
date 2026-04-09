@@ -119,14 +119,14 @@ export default function Page() {
                   <CheckCircle className="ml-2 text-green-500" size={16} />
                 </dd>
               </div>
-              {healthData.dependecies.database.postgres_version && (
+              {healthData.dependencies.database.postgres_version && (
                 <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center">
                     <Database className="mr-2 text-blue-500" />
                     Database Version
                   </dt>
                   <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2 flex items-center">
-                    {healthData.dependecies.database.postgres_version}
+                    {healthData.dependencies.database.postgres_version}
                     <CheckCircle className="ml-2 text-green-500" size={16} />
                   </dd>
                 </div>
@@ -137,7 +137,7 @@ export default function Page() {
                   Max Connections
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2 flex items-center">
-                  {healthData.dependecies.database.max_connections}
+                  {healthData.dependencies.database.max_connections}
                   <CheckCircle className="ml-2 text-green-500" size={16} />
                 </dd>
               </div>
@@ -147,7 +147,7 @@ export default function Page() {
                   Opened Connections
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2 flex items-center">
-                  {healthData.dependecies.database.opened_connections}
+                  {healthData.dependencies.database.opened_connections}
                   <CheckCircle className="ml-2 text-green-500" size={16} />
                 </dd>
               </div>

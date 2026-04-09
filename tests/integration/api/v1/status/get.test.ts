@@ -7,6 +7,7 @@ import {
   createUser,
   createSession,
   addFeaturesToUser,
+  activateUser,
 } from 'tests/orchestrator'
 import { Feature } from 'models/features'
 
@@ -15,6 +16,30 @@ beforeAll(async () => {
 })
 
 describe('GET /api/v1/status', () => {
+  describe('Default user', () => {
+    test('Retrieving current system status', async () => {
+      const createdUser = await createUser({})
+      const activatedUser = await activateUser(createdUser)
+      const sessionObject = await createSession(activatedUser)
+
+      const response = await fetch(`${webserver.origin}/api/v1/status`, {
+        headers: {
+          Cookie: `session_id=${sessionObject.token}`,
+        },
+      })
+      expect(response.status).toBe(200)
+
+      const responseBody = await response.json()
+
+      const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString()
+      expect(responseBody.updated_at).toEqual(parsedUpdatedAt)
+
+      expect(responseBody.dependencies.database.max_connections).toEqual(100)
+      expect(responseBody.dependencies.database.opened_connections).toEqual(1)
+      expect(responseBody.dependencies.database).not.toHaveProperty('version')
+    })
+  })
+
   describe('Anonymous user', () => {
     test('Retrieving current system status, returns only updated_at', async () => {
       const response = await fetch(`${webserver.origin}/api/v1/status`)
@@ -28,8 +53,10 @@ describe('GET /api/v1/status', () => {
       const parsedUpdatedAt = new Date(responseBody.updated_at).toISOString()
       expect(responseBody.updated_at).toEqual(parsedUpdatedAt)
 
-      expect(responseBody.dependecies.database.max_connections).toBeDefined()
-      expect(responseBody.dependecies.database.opened_connections).toBeDefined()
+      expect(responseBody.dependencies.database.max_connections).toBeDefined()
+      expect(
+        responseBody.dependencies.database.opened_connections
+      ).toBeDefined()
     })
   })
 
@@ -49,8 +76,10 @@ describe('GET /api/v1/status', () => {
       const responseBody = await response.json()
 
       expect(responseBody.updated_at).toBeDefined()
-      expect(responseBody.dependecies.database.max_connections).toBeDefined()
-      expect(responseBody.dependecies.database.opened_connections).toBeDefined()
+      expect(responseBody.dependencies.database.max_connections).toBeDefined()
+      expect(
+        responseBody.dependencies.database.opened_connections
+      ).toBeDefined()
     })
 
     test('With read:status feature, returns full status', async () => {
@@ -72,14 +101,16 @@ describe('GET /api/v1/status', () => {
       const responseBody = await response.json()
 
       expect(responseBody.updated_at).toBeDefined()
-      expect(responseBody.dependecies).toBeDefined()
-      expect(responseBody.dependecies.database.postgres_version).toBeDefined()
-      expect(responseBody.dependecies.database.max_connections).toBeDefined()
-      expect(responseBody.dependecies.database.opened_connections).toBeDefined()
+      expect(responseBody.dependencies).toBeDefined()
+      expect(responseBody.dependencies.database.postgres_version).toBeDefined()
+      expect(responseBody.dependencies.database.max_connections).toBeDefined()
+      expect(
+        responseBody.dependencies.database.opened_connections
+      ).toBeDefined()
 
-      expect(responseBody.dependecies.database.postgres_version).toBe('16.0')
-      expect(responseBody.dependecies.database.max_connections).toBe(100)
-      expect(responseBody.dependecies.database.opened_connections).toBe(1)
+      expect(responseBody.dependencies.database.postgres_version).toBe('16.0')
+      expect(responseBody.dependencies.database.max_connections).toBe(100)
+      expect(responseBody.dependencies.database.opened_connections).toBe(1)
     })
   })
 })

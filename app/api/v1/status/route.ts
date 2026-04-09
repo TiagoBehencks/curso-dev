@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
-          dependecies: {
+          dependencies: {
             database: {
               max_connections: maxConnections,
               opened_connections: openedConnections,
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         updated_at: updatedAt,
-        dependecies: {
+        dependencies: {
           database: {
             postgres_version: version,
             max_connections: maxConnections,
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           updated_at: updatedAt,
-          dependecies: {
+          dependencies: {
             database: {
               max_connections: maxConnections,
               opened_connections: openedConnections,

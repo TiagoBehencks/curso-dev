@@ -12,7 +12,7 @@ export function setSessionCookie({ token, response }: SessionTokenParams) {
     maxAge: session.EXPIRATION_IN_MILLISECONDS / 1000,
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
   })
 
   return response

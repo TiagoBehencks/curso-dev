@@ -89,7 +89,7 @@ describe('GET /api/v1/user', () => {
         value: renewedSessionObject.token,
         maxAge: session.EXPIRATION_IN_MILLISECONDS / 1000,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'lax',
         httpOnly: true,
       })
     })
@@ -229,7 +229,7 @@ describe('GET /api/v1/user', () => {
         value: renewedSessionObject.token,
         maxAge: session.EXPIRATION_IN_MILLISECONDS / 1000,
         path: '/',
-        sameSite: 'strict',
+        sameSite: 'lax',
         httpOnly: true,
       })
     })

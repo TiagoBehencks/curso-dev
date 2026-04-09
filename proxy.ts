@@ -4,7 +4,7 @@ import { injectAnonymousOrUser } from 'infra/middleware'
 import { AppError, UnauthorizedError } from 'infra/errors'
 import { clearSessionCookie } from 'infra/cookies'
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   try {
     return await injectAnonymousOrUser(request)
   } catch (err: unknown) {
@@ -48,5 +48,4 @@ function jsonErrorResponse(error: AppError | UnauthorizedError): NextResponse {
 
 export const config = {
   matcher: ['/api/:path*'],
-  runtime: 'nodejs',
 }
